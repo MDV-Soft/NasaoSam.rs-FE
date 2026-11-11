@@ -1,0 +1,198 @@
+/* ---------- Gornji meni ---------- */
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 1rem 0;
+}
+
+.nav-link {
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Sadržaj stranice ---------- */
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3rem 1rem 2rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(3.5rem, 15vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--teal);
+}
+
+.subtitle {
+  max-width: 30rem;
+  margin: 1.5rem 0 2rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---------- Tamna kartica ---------- */
+.how {
+  position: relative;
+  overflow: hidden;
+  padding: 2rem 1.75rem;
+  color: #fff;
+  background: var(--teal);
+  border-radius: 1.25rem;
+}
+
+/* Ukras: veliki providni krug u gornjem desnom uglu */
+.how::before {
+  content: '';
+  position: absolute;
+  top: -3rem;
+  right: -3rem;
+  width: 12rem;
+  height: 12rem;
+  border: 1.5rem solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+}
+
+/* Sadržaj mora biti iznad ukrasa */
+.how > * {
+  position: relative;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  background: #fff;
+  border-radius: 999px;
+}
+
+.how h2 {
+  max-width: 22rem;
+  margin: 0.75rem 0 1.5rem;
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+
+/* ---------- Koraci ---------- */
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Uspravna linija između krugova */
+.step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 2.4rem;
+  bottom: -0.2rem;
+  left: 1.05rem;
+  width: 2px;
+  background: #114654;
+}
+
+/* Krug sa brojem: neparni su beli, parni tamni */
+.step-badge {
+  display: flex;
+  flex: 0 0 2.2rem;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--bg);
+  border: 2px solid #e0e8e7;
+  border-radius: 50%;
+}
+
+.step:nth-child(even) .step-badge {
+  color: #fff;
+  background: #1c2526;
+  border-color: #484f50;
+}
+
+/* Svetla kartica sa opisom koraka */
+.step-card {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-radius: 0.75rem;
+}
+
+.step-card h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  color: var(--teal);
+}
+
+.step-card p {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+/* Veliki blagi broj sa desne strane */
+.step-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e9f3f6;
+}
+
+/* ---------- Dugmad na dnu ---------- */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1rem;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: var(--teal);
+  border: 1px solid var(--teal-dark);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.action:hover {
+  background: #0d4251;
+}

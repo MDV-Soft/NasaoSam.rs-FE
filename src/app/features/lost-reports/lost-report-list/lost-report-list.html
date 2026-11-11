@@ -1,0 +1,14 @@
+<header class="top-bar">
+  <strong>NasaoSam</strong>
+  <button type="button" (click)="onLogout()">Odjavi se</button>
+</header>
+
+<main class="content">
+  <h1>Moji oglasi</h1>
+
+  @if (user !== null) {
+    <p>Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).</p>
+  }
+
+  <p>Ovde će biti lista tvojih oglasa.</p>
+</main>

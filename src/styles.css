@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+/* Boje cele aplikacije na jednom mestu */
+:root {
+  --teal: #0f4c5c;
+  --teal-dark: #0a3844;
+  --bg: #f7f8f6;
+  --text-muted: #3f5560;
+  --error: #c62828;
+}
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  color: var(--teal);
+  background: var(--bg);
+}

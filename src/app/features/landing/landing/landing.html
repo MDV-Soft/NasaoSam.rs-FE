@@ -1,0 +1,42 @@
+<!-- Gornji meni -->
+<header class="nav">
+  <a class="nav-link" routerLink="/login">Izgubio si?</a>
+  <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
+  <button class="nav-link" type="button">Nasao si?</button>
+</header>
+
+<main class="page">
+  <!-- Naslov i opis -->
+  <h1 class="title">NasaoSam</h1>
+  <p class="subtitle">
+    Platforma za izgubljene i pronađene stvari širom Srbije. Opiši šta si izgubio ili fotografiši šta
+    si našao, a veštačka inteligencija spaja stvari sa njihovim vlasnicima.
+  </p>
+
+  <!-- Tamna kartica sa četiri koraka -->
+  <section class="how">
+    <span class="pill">KAKO FUNKCIONIŠE</span>
+    <h2>Od prijave do povratka u četiri koraka</h2>
+
+    <ol class="steps">
+      @for (step of steps; track step.number) {
+        <li class="step">
+          <span class="step-badge">{{ step.number }}</span>
+          <div class="step-card">
+            <div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
+            <span class="step-number">0{{ step.number }}</span>
+          </div>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <!-- Dva velika dugmeta -->
+  <div class="actions">
+    <a class="action" routerLink="/login">Izgubio Sam</a>
+    <button class="action" type="button">Nasao Sam</button>
+  </div>
+</main>
