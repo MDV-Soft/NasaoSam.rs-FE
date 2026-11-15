@@ -1,0 +1,117 @@
+<main class="register-page">
+  <section class="register-card">
+    <a class="back-link" routerLink="/">← Nazad</a>
+
+    <h1>Registracija</h1>
+    <p class="subtitle">Napravi nalog da prijaviš izgubljeni predmet</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      @let email = registerForm.controls.email;
+      <div class="field">
+        <label for="email">Mejl</label>
+        <input id="email" type="email" formControlName="email" autocomplete="username" />
+        @if (email.touched && email.invalid) {
+          <p class="field-error">
+            @if (email.errors?.['server']) {
+              {{ email.errors?.['server'] }}
+            } @else if (email.errors?.['maxlength']) {
+              Mejl može imati najviše 255 znakova.
+            } @else {
+              Unesi ispravnu mejl adresu.
+            }
+          </p>
+        }
+      </div>
+
+      @let displayName = registerForm.controls.displayName;
+      <div class="field">
+        <label for="displayName">Ime (nije obavezno)</label>
+        <input id="displayName" type="text" formControlName="displayName" autocomplete="name" />
+        @if (displayName.touched && displayName.invalid) {
+          <p class="field-error">
+            @if (displayName.errors?.['server']) {
+              {{ displayName.errors?.['server'] }}
+            } @else {
+              Ime može imati najviše 100 znakova.
+            }
+          </p>
+        }
+      </div>
+
+      @let phone = registerForm.controls.phone;
+      <div class="field">
+        <label for="phone">Broj telefona</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          autocomplete="tel"
+          placeholder="064 123 4567"
+        />
+        @if (phone.touched && phone.invalid) {
+          <p class="field-error">
+            @if (phone.errors?.['server']) {
+              {{ phone.errors?.['server'] }}
+            } @else if (phone.errors?.['required']) {
+              Broj telefona je obavezan.
+            } @else if (phone.errors?.['maxlength']) {
+              Broj telefona može imati najviše 30 znakova.
+            } @else {
+              Unesi ispravan srpski mobilni broj, npr. 064 123 4567.
+            }
+          </p>
+        }
+      </div>
+
+      @let password = registerForm.controls.password;
+      <div class="field">
+        <label for="password">Lozinka</label>
+        <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+        @if (password.touched && password.invalid) {
+          <p class="field-error">
+            @if (password.errors?.['server']) {
+              {{ password.errors?.['server'] }}
+            } @else if (password.errors?.['required']) {
+              Lozinka je obavezna.
+            } @else if (password.errors?.['minlength']) {
+              Lozinka mora imati najmanje 8 znakova.
+            } @else {
+              Lozinka može imati najviše 72 znaka.
+            }
+          </p>
+        }
+      </div>
+
+      @let confirm = registerForm.controls.confirmPassword;
+      <div class="field">
+        <label for="confirmPassword">Ponovi lozinku</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+        />
+        @if (confirm.touched && confirm.errors?.['required']) {
+          <p class="field-error">Ponovi lozinku.</p>
+        } @else if (confirm.touched && registerForm.errors?.['passwordsMismatch']) {
+          <!-- Greška je na celoj grupi, a ne na polju, zato se čita iz registerForm -->
+          <p class="field-error">Lozinke se ne poklapaju.</p>
+        }
+      </div>
+
+      @if (errorMessage() !== '') {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          Registracija...
+        } @else {
+          Registruj se
+        }
+      </button>
+    </form>
+
+    <p class="switch">Već imaš nalog? <a routerLink="/login">Prijavi se</a></p>
+  </section>
+</main>

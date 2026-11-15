@@ -1,0 +1,105 @@
+/* Kartica na sredini ekrana */
+.register-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 24rem;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid #d5dbe1;
+  border-radius: 1rem;
+}
+
+.back-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+h1 {
+  margin: 1rem 0 0;
+  font-size: 2rem;
+}
+
+.subtitle {
+  margin: 0.25rem 0 1.5rem;
+  color: var(--text-muted);
+}
+
+/* Jedno polje: oznaka iznad, unos ispod, greška na dnu */
+.field {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: 1px solid #d5dbe1;
+  border-radius: 0.5rem;
+}
+
+input:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+.field-error {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--error);
+}
+
+.form-error {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--error);
+}
+
+button {
+  width: 100%;
+  padding: 0.8rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--teal);
+  border: 0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0d4251;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Veza ka drugoj stranici ispod dugmeta */
+.switch {
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.switch a {
+  font-weight: 700;
+  color: var(--teal);
+}
