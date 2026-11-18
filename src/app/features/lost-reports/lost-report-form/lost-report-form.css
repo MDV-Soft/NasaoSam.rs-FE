@@ -1,0 +1,174 @@
+.form-page {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 32rem;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid #d5dbe1;
+  border-radius: 1rem;
+}
+
+.back-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+h1 {
+  margin: 1rem 0 0.75rem;
+  font-size: 2rem;
+}
+
+h2 {
+  margin: 1.5rem 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Pokazivač koraka: 1. Oglas  2. Predmeti */
+.steps {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.steps .active {
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: 1px solid #d5dbe1;
+  border-radius: 0.5rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+.location {
+  margin: 1.5rem 0 0;
+  padding: 0.75rem 1rem 0;
+  border: 1px solid #d5dbe1;
+  border-radius: 0.5rem;
+}
+
+.location legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+
+.field-error {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--error);
+}
+
+button {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--teal);
+  border: 0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0d4251;
+}
+
+button.secondary {
+  color: var(--teal);
+  background: transparent;
+  border: 1px solid var(--teal);
+}
+
+button.secondary:hover {
+  background: #eef4f5;
+}
+
+/* Kartica jednog predmeta */
+h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.item-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--bg);
+  border: 1px solid #d5dbe1;
+  border-radius: 0.75rem;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+/* Malo dugme "Ukloni" u zaglavlju kartice */
+button.remove {
+  width: auto;
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--error);
+  background: transparent;
+  border: 1px solid var(--error);
+}
+
+button.remove:hover {
+  background: #fdecec;
+}
+
+.form-error {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--error);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,352 @@
+<main class="form-page">
+  <section class="form-card">
+    <a class="back-link" routerLink="/moji-oglasi">← Moji oglasi</a>
+
+    <h1>Izgubio sam nešto</h1>
+
+    <!-- Pokazuje na kom smo koraku od dva -->
+    <ol class="steps">
+      <li [class.active]="step() === 'report'">1. Oglas</li>
+      <li [class.active]="step() === 'items'">2. Predmeti</li>
+    </ol>
+
+    @if (step() === 'report') {
+      <form [formGroup]="reportForm" (ngSubmit)="onNext()" novalidate>
+        <h2>Kada si izgubio?</h2>
+        <p class="hint">
+          Ako ne znaš tačno vreme, unesi širi period, npr. od jutra do večeri.
+        </p>
+
+        @let lostFrom = reportForm.controls.lostFrom;
+        <div class="field">
+          <label for="lostFrom">Od</label>
+          <input id="lostFrom" type="datetime-local" formControlName="lostFrom" />
+          @if (lostFrom.touched && lostFrom.errors?.['required']) {
+            <p class="field-error">Unesi početak perioda.</p>
+          }
+        </div>
+
+        @let lostTo = reportForm.controls.lostTo;
+        <div class="field">
+          <label for="lostTo">Do</label>
+          <input id="lostTo" type="datetime-local" formControlName="lostTo" />
+          @if (lostTo.touched && lostTo.errors?.['required']) {
+            <p class="field-error">Unesi kraj perioda.</p>
+          }
+          <!-- Ove greške pripadaju grupi (porede dva polja), zato se čitaju iz reportForm -->
+          @if (lostFrom.touched && lostTo.touched) {
+            @if (reportForm.errors?.['lostFromAfterLostTo']) {
+              <p class="field-error">Početak ne može biti posle kraja.</p>
+            }
+            @if (reportForm.errors?.['lostInFuture']) {
+              <p class="field-error">Vreme gubitka ne može biti u budućnosti.</p>
+            }
+            @if (reportForm.errors?.['lostTooOld']) {
+              <p class="field-error">Gubitak ne može biti stariji od godinu dana.</p>
+            }
+          }
+        </div>
+
+        <h2>Gde si izgubio?</h2>
+
+        @let city = reportForm.controls.city;
+        <div class="field">
+          <label for="city">Grad</label>
+          <input id="city" type="text" formControlName="city" autocomplete="address-level2" />
+          @if (city.touched && city.invalid) {
+            <p class="field-error">
+              @if (city.errors?.['required']) {
+                Unesi grad.
+              } @else {
+                Grad može imati najviše 100 znakova.
+              }
+            </p>
+          }
+        </div>
+
+        @let place = reportForm.controls.placeDescription;
+        <div class="field">
+          <label for="placeDescription">Opis mesta (nije obavezno)</label>
+          <input
+            id="placeDescription"
+            type="text"
+            formControlName="placeDescription"
+            placeholder="npr. autobus 26, kod Autokomande"
+          />
+          @if (place.touched && place.invalid) {
+            <p class="field-error">Opis mesta može imati najviše 255 znakova.</p>
+          }
+        </div>
+
+        <fieldset class="location">
+          <legend>Tačna tačka na mapi (nije obavezno)</legend>
+          <p class="hint">
+            Širina i dužina se unose zajedno. Radijus kaže koliko metara okolo tačke možeš da
+            budeš sa mestom gubitka.
+          </p>
+
+          @let latitude = reportForm.controls.latitude;
+          <div class="field">
+            <label for="latitude">Geografska širina</label>
+            <input id="latitude" type="number" step="any" formControlName="latitude" placeholder="44.8125" />
+            @if (latitude.touched && latitude.invalid) {
+              <p class="field-error">Širina mora biti između -90 i 90.</p>
+            }
+          </div>
+
+          @let longitude = reportForm.controls.longitude;
+          <div class="field">
+            <label for="longitude">Geografska dužina</label>
+            <input id="longitude" type="number" step="any" formControlName="longitude" placeholder="20.4612" />
+            @if (longitude.touched && longitude.invalid) {
+              <p class="field-error">Dužina mora biti između -180 i 180.</p>
+            }
+          </div>
+
+          @let radius = reportForm.controls.locationRadiusMeters;
+          <div class="field">
+            <label for="radius">Radijus u metrima</label>
+            <input id="radius" type="number" formControlName="locationRadiusMeters" placeholder="500" />
+            @if (radius.touched && radius.invalid) {
+              <p class="field-error">
+                @if (radius.errors?.['pattern']) {
+                  Radijus mora biti ceo broj.
+                } @else {
+                  Radijus mora biti između 0 i 50000 metara.
+                }
+              </p>
+            }
+          </div>
+
+          @if (reportForm.errors?.['coordinatesPair'] && (latitude.touched || longitude.touched)) {
+            <p class="field-error">Unesi i širinu i dužinu, ili nijednu.</p>
+          }
+          @if (reportForm.errors?.['radiusWithoutPoint'] && radius.touched) {
+            <p class="field-error">Radijus ima smisla samo uz tačku (širinu i dužinu).</p>
+          }
+        </fieldset>
+
+        <h2>Privatni detalji</h2>
+        @let privateDetails = reportForm.controls.privateDetails;
+        <div class="field">
+          <label for="privateDetails">Samo za tebe (nije obavezno)</label>
+          <textarea
+            id="privateDetails"
+            rows="3"
+            formControlName="privateDetails"
+            placeholder="Nešto što samo ti znaš, a pomaže ti da dokažeš da je predmet tvoj"
+          ></textarea>
+          <p class="hint">Čuva se šifrovano i niko osim tebe ne može da ga vidi.</p>
+          @if (privateDetails.touched && privateDetails.invalid) {
+            <p class="field-error">Privatni detalji mogu imati najviše 1000 znakova.</p>
+          }
+        </div>
+
+        <button type="submit">Dalje: predmeti</button>
+      </form>
+    } @else {
+      <h2>Predmeti</h2>
+      <p class="hint">
+        Dodaj svaki predmet koji si izgubio. Što je opis detaljniji, to je veća šansa da se
+        pronađe.
+      </p>
+
+      @if (options(); as opts) {
+        <form [formGroup]="itemsForm" (ngSubmit)="onSubmit()" novalidate>
+          <div formArrayName="items">
+            @for (item of itemGroups; track item; let i = $index) {
+              @let category = item.controls.category.value;
+              <div class="item-card" [formGroupName]="i">
+                <div class="item-header">
+                  <h3>Predmet {{ i + 1 }}</h3>
+                  @if (itemGroups.length > 1) {
+                    <button type="button" class="remove" (click)="removeItem(i)">Ukloni</button>
+                  }
+                </div>
+
+                <!-- Vrsta predmeta: od nje zavisi koja polja se prikazuju -->
+                <div class="field">
+                  <label [attr.for]="'category-' + i">Vrsta predmeta</label>
+                  <select [id]="'category-' + i" formControlName="category">
+                    <option value="">Izaberi vrstu</option>
+                    @for (option of opts.categories; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                  @if (item.controls.category.touched && item.controls.category.errors?.['required']) {
+                    <p class="field-error">Izaberi vrstu predmeta.</p>
+                  }
+                </div>
+
+                @if (category === 'OTHER') {
+                  <div class="field">
+                    <label [attr.for]="'customCategory-' + i">Šta je predmet?</label>
+                    <input
+                      [id]="'customCategory-' + i"
+                      type="text"
+                      formControlName="customCategory"
+                      placeholder="npr. kišobran"
+                    />
+                    @if (item.controls.customCategory.touched) {
+                      @if (item.errors?.['customCategoryRequired']) {
+                        <p class="field-error">Upiši šta je predmet.</p>
+                      } @else if (item.controls.customCategory.errors?.['maxlength']) {
+                        <p class="field-error">Naziv može imati najviše 50 znakova.</p>
+                      }
+                    }
+                  </div>
+                }
+
+                @if (category === 'DOCUMENT') {
+                  <!-- DOKUMENT: vrsta dokumenta i ime. Ime se ne šalje serveru, samo njegov heš. -->
+                  @let documentType = item.controls.documentType.value;
+                  <div class="field">
+                    <label [attr.for]="'documentType-' + i">Vrsta dokumenta</label>
+                    <select [id]="'documentType-' + i" formControlName="documentType">
+                      <option value="">Izaberi vrstu dokumenta</option>
+                      @for (option of opts.documentTypes; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                    @if (item.controls.documentType.touched && item.errors?.['documentTypeRequired']) {
+                      <p class="field-error">Izaberi vrstu dokumenta.</p>
+                    }
+                  </div>
+
+                  <p class="hint">
+                    Ime sa dokumenta se ne šalje i ne čuva: u browseru se pretvara u šifru (heš)
+                    i samo ona odlazi na server.
+                  </p>
+
+                  <div class="field">
+                    <label [attr.for]="'lastName-' + i">Prezime sa dokumenta</label>
+                    <input [id]="'lastName-' + i" type="text" formControlName="lastName" autocomplete="off" />
+                    @if (item.controls.lastName.touched && item.errors?.['lastNameRequired']) {
+                      <p class="field-error">Unesi prezime.</p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label [attr.for]="'firstName-' + i">Ime sa dokumenta</label>
+                    <input [id]="'firstName-' + i" type="text" formControlName="firstName" autocomplete="off" />
+                    @if (item.controls.firstName.touched && item.errors?.['firstNameRequired']) {
+                      <p class="field-error">Unesi ime.</p>
+                    }
+                  </div>
+
+                  @if (documentType !== 'BANK_CARD') {
+                    <div class="field">
+                      <label [attr.for]="'dateOfBirth-' + i">Datum rođenja (nije obavezno)</label>
+                      <input
+                        [id]="'dateOfBirth-' + i"
+                        type="date"
+                        formControlName="dateOfBirth"
+                        [max]="today"
+                      />
+                    </div>
+                  }
+                } @else if (category !== '') {
+                  <!-- SVE OSTALO: izgled i opis -->
+                  <div class="field">
+                    <label [attr.for]="'color-' + i">Boja (nije obavezno)</label>
+                    <select [id]="'color-' + i" formControlName="color">
+                      <option value="">Nije bitno / ne znam</option>
+                      @for (option of opts.colors; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label [attr.for]="'brand-' + i">Marka (nije obavezno)</label>
+                    <input [id]="'brand-' + i" type="text" formControlName="brand" />
+                    @if (item.controls.brand.errors?.['maxlength']) {
+                      <p class="field-error">Marka može imati najviše 100 znakova.</p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label [attr.for]="'material-' + i">Materijal (nije obavezno)</label>
+                    <input [id]="'material-' + i" type="text" formControlName="material" />
+                    @if (item.controls.material.errors?.['maxlength']) {
+                      <p class="field-error">Materijal može imati najviše 50 znakova.</p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label [attr.for]="'description-' + i">Opis</label>
+                    <textarea
+                      [id]="'description-' + i"
+                      rows="4"
+                      formControlName="description"
+                      placeholder="Opiši izgled, oštećenja i sve po čemu se predmet razlikuje od drugih."
+                    ></textarea>
+                    <p class="hint">
+                      {{ descriptionLength(i) }} znakova (najmanje {{ minDescriptionLength }}).
+                      Opis od 100 i od 200 znakova povećava kompletnost oglasa.
+                    </p>
+                    @if (item.controls.description.touched) {
+                      @if (item.errors?.['descriptionTooShort']) {
+                        <p class="field-error">
+                          Opis mora imati najmanje {{ minDescriptionLength }} znakova. Opiši izgled,
+                          oštećenja i sve po čemu se predmet razlikuje.
+                        </p>
+                      } @else if (item.controls.description.errors?.['maxlength']) {
+                        <p class="field-error">Opis može imati najviše 2000 znakova.</p>
+                      }
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label [attr.for]="'distinctiveMarks-' + i">Posebni znaci (nije obavezno)</label>
+                    <input
+                      [id]="'distinctiveMarks-' + i"
+                      type="text"
+                      formControlName="distinctiveMarks"
+                      placeholder="npr. nalepnica, ogrebotina, privezak"
+                    />
+                    @if (item.controls.distinctiveMarks.errors?.['maxlength']) {
+                      <p class="field-error">Posebni znaci mogu imati najviše 500 znakova.</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="secondary"
+            (click)="addItem()"
+            [disabled]="itemGroups.length >= maxItems"
+          >
+            + Dodaj još jedan predmet
+          </button>
+
+          @if (submitErrors().length > 0) {
+            <ul class="form-error">
+              @for (message of submitErrors(); track $index) {
+                <li>{{ message }}</li>
+              }
+            </ul>
+          }
+
+          <button type="submit" [disabled]="isSaving()">
+            @if (isSaving()) {
+              Čuvanje...
+            } @else {
+              Sačuvaj oglas
+            }
+          </button>
+        </form>
+      } @else if (optionsFailed()) {
+        <p class="form-error">Liste za izbor nisu učitane. Proveri da li backend radi.</p>
+        <button type="button" class="secondary" (click)="loadOptions()">Pokušaj ponovo</button>
+      } @else {
+        <p class="hint">Učitavanje lista...</p>
+      }
+
+      <button type="button" class="secondary" (click)="onBack()">← Nazad na oglas</button>
+    }
+  </section>
+</main>
