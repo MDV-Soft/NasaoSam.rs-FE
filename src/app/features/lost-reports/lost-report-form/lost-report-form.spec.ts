@@ -49,7 +49,6 @@ describe('LostReportForm', () => {
       latitude: null,
       longitude: null,
       locationRadiusMeters: null,
-      privateDetails: '',
       ...overrides,
     });
   };
@@ -136,12 +135,10 @@ describe('LostReportForm', () => {
       fillForm({
         city: 'x'.repeat(101),
         placeDescription: 'x'.repeat(256),
-        privateDetails: 'x'.repeat(1001),
       });
 
       expect(component.reportForm.controls.city.errors?.['maxlength']).toBeTruthy();
       expect(component.reportForm.controls.placeDescription.errors?.['maxlength']).toBeTruthy();
-      expect(component.reportForm.controls.privateDetails.errors?.['maxlength']).toBeTruthy();
     });
 
     it('rejects coordinates outside the valid range', () => {
@@ -158,7 +155,6 @@ describe('LostReportForm', () => {
 
       expect(component.reportForm.errors?.['coordinatesPair']).toBe(true);
       expect(component.step()).toBe('report');
-      expect(text()).toContain('Unesi i širinu i dužinu, ili nijednu.');
     });
 
     it('rejects a radius without a point', async () => {
@@ -167,7 +163,7 @@ describe('LostReportForm', () => {
       await fixture.whenStable();
 
       expect(component.reportForm.errors?.['radiusWithoutPoint']).toBe(true);
-      expect(text()).toContain('Radijus ima smisla samo uz tačku');
+      expect(component.step()).toBe('report');
     });
 
     it('rejects a radius that is not a whole number or is out of range', () => {
@@ -195,7 +191,7 @@ describe('LostReportForm', () => {
     });
 
     it('leaves out empty optional fields instead of sending empty text', () => {
-      fillForm({ placeDescription: '   ', privateDetails: '' });
+      fillForm({ placeDescription: '   ' });
 
       component.onNext();
 
@@ -213,7 +209,6 @@ describe('LostReportForm', () => {
         latitude: 44.8125,
         longitude: 20.4612,
         locationRadiusMeters: 500,
-        privateDetails: 'U novčaniku je slika mog psa',
       });
 
       component.onNext();
@@ -223,7 +218,6 @@ describe('LostReportForm', () => {
         latitude: 44.8125,
         longitude: 20.4612,
         locationRadiusMeters: 500,
-        privateDetails: 'U novčaniku je slika mog psa',
       });
     });
 
@@ -458,7 +452,131 @@ describe('LostReportForm', () => {
     });
   });
 
+  describe('the map', () => {
+    it('shows the map instead of the latitude and longitude fields', () => {
+      const page = fixture.nativeElement as HTMLElement;
+
+      expect(page.querySelector('app-location-picker')).not.toBeNull();
+      expect(page.querySelector('#latitude')).toBeNull();
+      expect(page.querySelector('#longitude')).toBeNull();
+    });
+
+    it('puts the pin from the map into the report fields', () => {
+      fillForm();
+      component.onLocationChange({ latitude: 44.8125, longitude: 20.4612, radiusMeters: 300 });
+
+      expect(component.reportForm.getRawValue()).toMatchObject({
+        latitude: 44.8125,
+        longitude: 20.4612,
+        locationRadiusMeters: 300,
+      });
+      expect(component.mapLocation()).toEqual({
+        latitude: 44.8125,
+        longitude: 20.4612,
+        radiusMeters: 300,
+      });
+
+      component.onNext();
+      expect(component.draft()).toMatchObject({ latitude: 44.8125, locationRadiusMeters: 300 });
+    });
+
+    it('clears all three fields when the pin is removed', () => {
+      fillForm();
+      component.onLocationChange({ latitude: 44.8, longitude: 20.4, radiusMeters: 100 });
+      component.onLocationChange(null);
+
+      expect(component.reportForm.getRawValue()).toMatchObject({
+        latitude: null,
+        longitude: null,
+        locationRadiusMeters: null,
+      });
+      expect(component.mapLocation()).toBeNull();
+    });
+  });
+
+  describe('precision of the report', () => {
+    it('starts at 0 and lists what brings the most points', () => {
+      expect(component.score()).toBe(0);
+      expect(component.suggestions().map((s) => s.key)).toContain('coordinates');
+      expect(text()).toContain('Preciznost oglasa');
+    });
+
+    it('rises live while the form is filled, with the same rules as the backend', async () => {
+      fillForm({ placeDescription: 'autobus 26' });
+      expect(component.score()).toBe(10);
+
+      component.onLocationChange({ latitude: 44.8, longitude: 20.4, radiusMeters: 300 });
+      expect(component.score()).toBe(20);
+
+      component.onNext();
+      await fixture.whenStable();
+      expect(component.step()).toBe('items');
+      fillItem(0, {
+        category: 'WALLET',
+        color: 'BLACK',
+        brand: 'Guess',
+        distinctiveMarks: 'ogrebotina',
+        description: 'x'.repeat(120),
+      });
+      // Novčanik 15 + 15 + 20 + 30 = 80 → round(80 * 0,7) = 56
+      expect(component.itemScores()).toEqual([80]);
+
+      component.itemsForm.controls.details.setValue('Unutra lična karta i dve slike.');
+      // Opis mesta (10) + mapa (10) + detaljan opis (10) + 56
+      expect(component.score()).toBe(86);
+    });
+
+    it('shows the points next to the fields and a check mark when a field is done', async () => {
+      const page = await goToItemsStep();
+      fillItem(0, { category: 'KEYS', color: 'BLACK' });
+      await fixture.whenStable();
+
+      expect(component.pointsBadge('items.0.color')).toBe('✓');
+      expect(component.pointsBadge('items.0.distinctiveMarks')).toBe('+14');
+      expect(page.querySelector('label[for="distinctiveMarks-0"] .pts')?.textContent?.trim()).toBe(
+        '+14',
+      );
+    });
+  });
+
+  describe('the detailed description', () => {
+    it('is on the second step and is limited to 1000 characters', async () => {
+      const page = await goToItemsStep();
+
+      expect(page.querySelector('#details')).not.toBeNull();
+      expect(page.textContent).toContain('Detaljan opis izgubljenog');
+      expect(page.textContent).not.toContain('Privatni detalji');
+
+      component.itemsForm.controls.details.setValue('x'.repeat(1001));
+      expect(component.itemsForm.invalid).toBe(true);
+    });
+  });
+
   describe('saving', () => {
+    it('sends the detailed description as privateDetails, trimmed', async () => {
+      await goToItemsStep();
+      fillItem(0, { category: 'WALLET', description: LONG_DESCRIPTION });
+      component.itemsForm.controls.details.setValue('  U novčaniku je slika mog psa  ');
+
+      await component.onSubmit();
+
+      const req = httpMock.expectOne(CREATE_URL);
+      expect(req.request.body.privateDetails).toBe('U novčaniku je slika mog psa');
+      req.flush({}, { status: 201, statusText: 'Created' });
+    });
+
+    it('does not send an empty detailed description', async () => {
+      await goToItemsStep();
+      fillItem(0, { category: 'WALLET', description: LONG_DESCRIPTION });
+      component.itemsForm.controls.details.setValue('   ');
+
+      await component.onSubmit();
+
+      const req = httpMock.expectOne(CREATE_URL);
+      expect('privateDetails' in req.request.body).toBe(false);
+      req.flush({}, { status: 201, statusText: 'Created' });
+    });
+
     it('sends the whole report: the data of step 1 and the items (README example for the name)', async () => {
       await goToItemsStep();
       component.addItem();

@@ -1,12 +1,41 @@
 .form-page {
-  display: flex;
-  justify-content: center;
   padding: 1rem;
 }
 
+/* Telefon: panel preciznosti je traka na vrhu, forma ispod */
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.meter-slot {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 10;
+}
+
+/* Široki ekran: forma levo, panel preciznosti desno i prati skrolovanje */
+@media (min-width: 960px) {
+  .form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 36rem) 19rem;
+    align-items: start;
+    max-width: 57rem;
+  }
+
+  .meter-slot {
+    grid-column: 2;
+    grid-row: 1;
+    top: 1rem;
+  }
+}
+
 .form-card {
+  box-sizing: border-box;
   width: 100%;
-  max-width: 32rem;
   padding: 2rem;
   background: #fff;
   border: 1px solid #d5dbe1;
@@ -80,16 +109,76 @@ textarea:focus {
   outline-offset: 1px;
 }
 
-.location {
-  margin: 1.5rem 0 0;
-  padding: 0.75rem 1rem 0;
-  border: 1px solid #d5dbe1;
-  border-radius: 0.5rem;
+.lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
-.location legend {
-  padding: 0 0.4rem;
+/* Naziv polja levo, bedž sa bodovima desno */
+.label-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.label {
   font-weight: 700;
+}
+
+p.label-row {
+  margin: 0 0 0.25rem;
+}
+
+.pts {
+  flex-shrink: 0;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2f7d4f;
+  background: #e6f3eb;
+  border-radius: 999px;
+}
+
+.pts-done {
+  color: #fff;
+  background: #2f7d4f;
+}
+
+.item-score {
+  margin-left: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* Pragovi dužine opisa: 40+ 100+ 200+ */
+.tiers {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.4rem 0 0.25rem;
+}
+
+.tiers span {
+  flex: 1;
+  padding-top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  border-top: 4px solid #e8ecef;
+}
+
+.tiers .reached {
+  font-weight: 700;
+  color: #2f7d4f;
+  border-top-color: #2f7d4f;
+}
+
+.details-block {
+  margin: 1.5rem 0 0;
+  padding: 1rem;
+  background: #eef4f5;
+  border-radius: 0.75rem;
 }
 
 .field-error {

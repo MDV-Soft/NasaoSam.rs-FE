@@ -3,7 +3,6 @@ import { Landing } from './features/landing/landing/landing';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { LostReportList } from './features/lost-reports/lost-report-list/lost-report-list';
-import { LostReportForm } from './features/lost-reports/lost-report-form/lost-report-form';
 import { authGuard } from './core/guards/auth-guard';
 import { guestGuard } from './core/guards/guest-guard';
 
@@ -15,7 +14,15 @@ export const routes: Routes = [
   { path: 'registracija', component: Register, canActivate: [guestGuard] },
   // Samo za prijavljene
   { path: 'moji-oglasi', component: LostReportList, canActivate: [authGuard] },
-  { path: 'novi-oglas', component: LostReportForm, canActivate: [authGuard] },
+  // Forma sa mapom (Leaflet) se učitava tek kad se otvori, da početna stranica ostane laka
+  {
+    path: 'novi-oglas',
+    loadComponent: () =>
+      import('./features/lost-reports/lost-report-form/lost-report-form').then(
+        (m) => m.LostReportForm,
+      ),
+    canActivate: [authGuard],
+  },
   // Svaka nepoznata adresa vodi na početnu (MORA biti poslednja)
   { path: '**', redirectTo: '' },
 ];

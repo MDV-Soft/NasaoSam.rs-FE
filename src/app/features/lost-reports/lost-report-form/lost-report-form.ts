@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -11,7 +12,18 @@ import {
 } from '../../../core/models/lost-report.model';
 import { LostReportService } from '../../../core/services/lost-report.service';
 import { MetaService } from '../../../core/services/meta.service';
-import { buildItemRequest } from '../../../core/utils/lost-item-request';
+import { ItemFormValue, buildItemRequest } from '../../../core/utils/lost-item-request';
+import {
+  CompletenessInput,
+  CompletenessItem,
+  DESCRIPTION_TIERS,
+  Suggestion,
+  completenessScore,
+  itemScore,
+  suggestions,
+} from '../../../core/utils/completeness-score';
+import { LocationPicker, MapLocation } from '../location-picker/location-picker';
+import { PrecisionMeter } from '../precision-meter/precision-meter';
 import {
   MIN_DESCRIPTION_LENGTH,
   lostItemValidator,
@@ -27,9 +39,12 @@ export type LostReportDraft = Omit<CreateLostReportRequest, 'items'>;
 // Najviše predmeta u jednom oglasu (isto kao @Size(max = 10) na backendu)
 const MAX_ITEMS = 10;
 
+// Najduži detaljan opis (isto kao @Size(max = 1000) za privateDetails na backendu)
+const MAX_DETAILS_LENGTH = 1000;
+
 @Component({
   selector: 'app-lost-report-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, LocationPicker, PrecisionMeter],
   templateUrl: './lost-report-form.html',
   styleUrl: './lost-report-form.css',
 })
@@ -40,6 +55,7 @@ export class LostReportForm {
 
   readonly maxItems = MAX_ITEMS;
   readonly minDescriptionLength = MIN_DESCRIPTION_LENGTH;
+  readonly descriptionTiers = DESCRIPTION_TIERS;
 
   // Forma ima dva koraka: "report" (podaci o oglasu) i "items" (predmeti)
   step = signal<'report' | 'items'>('report');
@@ -79,10 +95,6 @@ export class LostReportForm {
         Validators.max(50000),
         Validators.pattern(/^\d+$/), // ceo broj: backend očekuje Integer
       ]),
-      privateDetails: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.maxLength(1000)],
-      }),
     },
     { validators: [lostTimeValidator(), coordinatesValidator()] },
   );
@@ -90,12 +102,78 @@ export class LostReportForm {
   // ---------- Korak 2: predmeti ----------
 
   // Lista predmeta: svaki predmet je grupa polja. Počinje sa jednim praznim predmetom.
+  // details je detaljan opis svega izgubljenog: na backendu je to polje privateDetails
+  // (čuva se šifrovano, nalazači ga ne vide, a koristi se pri spajanju i proveri vlasnika).
   itemsForm = new FormGroup({
     items: new FormArray([this.createItemGroup()]),
+    details: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(MAX_DETAILS_LENGTH)],
+    }),
+  });
+
+  readonly maxDetailsLength = MAX_DETAILS_LENGTH;
+
+  // ---------- Preciznost oglasa (uživo) ----------
+
+  // Forme nisu signali: svaka promena u njima povećava ovaj brojač, pa se preračuna sve ispod
+  private formRevision = signal<number>(0);
+
+  private completenessInput = computed<CompletenessInput>(() => {
+    this.formRevision();
+    return this.buildCompletenessInput();
+  });
+
+  score = computed<number>(() => completenessScore(this.completenessInput()));
+  suggestions = computed<Suggestion[]>(() => suggestions(this.completenessInput()));
+  itemScores = computed<number[]>(() => this.completenessInput().items.map(itemScore));
+
+  // Trenutni pin za mapu (iz polja latitude, longitude i radijusa)
+  mapLocation = computed<MapLocation | null>(() => {
+    this.formRevision();
+    const value = this.reportForm.getRawValue();
+    if (value.latitude === null || value.longitude === null) {
+      return null;
+    }
+    return {
+      latitude: value.latitude,
+      longitude: value.longitude,
+      radiusMeters: value.locationRadiusMeters ?? 0,
+    };
   });
 
   constructor() {
     this.loadOptions();
+
+    const bump = () => this.formRevision.update((n) => n + 1);
+    this.reportForm.valueChanges.pipe(takeUntilDestroyed()).subscribe(bump);
+    this.itemsForm.valueChanges.pipe(takeUntilDestroyed()).subscribe(bump);
+  }
+
+  /**
+   * Koliko bi ukupna preciznost porasla kad bi se polje popunilo ("+7"), ili kvačica
+   * kad je polje već popunjeno do kraja. key je isti kao u completeness-score.ts.
+   */
+  pointsBadge(key: string): string {
+    const suggestion = this.suggestions().find((s) => s.key === key);
+    return suggestion ? '+' + suggestion.gain : '✓';
+  }
+
+  isScored(key: string): boolean {
+    return !this.suggestions().some((s) => s.key === key);
+  }
+
+  onLocationChange(location: MapLocation | null): void {
+    this.reportForm.patchValue({
+      latitude: location?.latitude ?? null,
+      longitude: location?.longitude ?? null,
+      locationRadiusMeters: location?.radiusMeters ?? null,
+    });
+    this.reportForm.controls.latitude.markAsTouched();
+  }
+
+  detailsLength(): number {
+    return this.itemsForm.controls.details.value.trim().length;
   }
 
   get itemGroups() {
@@ -187,7 +265,13 @@ export class LostReportForm {
       return;
     }
 
-    this.lostReportService.create({ ...draft, items }).subscribe({
+    const request: CreateLostReportRequest = { ...draft, items };
+    const details = this.itemsForm.controls.details.value.trim();
+    if (details !== '') {
+      request.privateDetails = details;
+    }
+
+    this.lostReportService.create(request).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.router.navigate(['/moji-oglasi']);
@@ -268,12 +352,51 @@ export class LostReportForm {
     if (value.locationRadiusMeters !== null) {
       draft.locationRadiusMeters = value.locationRadiusMeters;
     }
-    const privateDetails = value.privateDetails.trim();
-    if (privateDetails !== '') {
-      draft.privateDetails = privateDetails;
+    return draft;
+  }
+
+  // Šta je popunjeno, u obliku koji traži kalkulator (isto što bi backend video po slanju)
+  private buildCompletenessInput(): CompletenessInput {
+    const report = this.reportForm.getRawValue();
+
+    return {
+      hasPlaceDescription: report.placeDescription.trim() !== '',
+      hasCoordinates: report.latitude !== null && report.longitude !== null,
+      hasDetails: this.itemsForm.controls.details.value.trim() !== '',
+      items: this.itemGroups.map((group) => this.toCompletenessItem(group.getRawValue())),
+    };
+  }
+
+  // Ista pravila kao buildItemRequest: računa se samo ono što bi zaista otišlo na server
+  private toCompletenessItem(value: ItemFormValue): CompletenessItem {
+    const filled = (text: string) => text.trim() !== '';
+
+    if (value.category === 'DOCUMENT') {
+      const hasName = filled(value.lastName) && filled(value.firstName);
+      return {
+        category: value.category,
+        hasDocumentType: value.documentType !== '',
+        hasNameHash: hasName,
+        hasNameDobHash: hasName && value.documentType !== 'BANK_CARD' && filled(value.dateOfBirth),
+        hasColor: false,
+        hasBrand: false,
+        hasMaterial: false,
+        hasDistinctiveMarks: false,
+        descriptionLength: 0,
+      };
     }
 
-    return draft;
+    return {
+      category: value.category,
+      hasDocumentType: false,
+      hasNameHash: false,
+      hasNameDobHash: false,
+      hasColor: value.color !== '',
+      hasBrand: filled(value.brand),
+      hasMaterial: filled(value.material),
+      hasDistinctiveMarks: filled(value.distinctiveMarks),
+      descriptionLength: value.description.trim().length,
+    };
   }
 
   /**

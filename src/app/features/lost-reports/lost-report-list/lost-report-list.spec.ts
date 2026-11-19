@@ -247,7 +247,7 @@ describe('LostReportList', () => {
     it('shows the completeness score as a number and as a bar', async () => {
       await open([CLOSED]);
 
-      expect(text()).toContain('Kompletnost oglasa: 80%');
+      expect(text()).toContain('Preciznost oglasa: 80/100');
       const fill = page().querySelector('.fill') as HTMLElement;
       expect(fill.style.width).toBe('80%');
       expect(page().querySelector('.bar')?.getAttribute('aria-valuenow')).toBe('80');
