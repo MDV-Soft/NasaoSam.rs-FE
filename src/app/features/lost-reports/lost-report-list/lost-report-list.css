@@ -23,3 +23,199 @@
   margin: 2rem auto;
   padding: 0 1rem;
 }
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+h1 {
+  margin: 0;
+}
+
+.user {
+  margin: 0.75rem 0 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.new-report {
+  display: inline-block;
+  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: var(--teal);
+  border-radius: 0.75rem;
+}
+
+.new-report:hover {
+  background: #0d4251;
+}
+
+.empty {
+  padding: 1.5rem 0;
+  color: var(--text-muted);
+}
+
+.form-error {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--error);
+}
+
+/* Kartica jednog oglasa */
+.report-card {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid #d5dbe1;
+  border-radius: 1rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Značka statusa */
+.status {
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.status-active {
+  color: #14633a;
+  background: #def5e8;
+}
+
+.status-returned {
+  color: #0f4c5c;
+  background: #dbeef3;
+}
+
+.status-closed {
+  color: #4a4f55;
+  background: #e6e8ea;
+}
+
+.status-expired {
+  color: #8a5300;
+  background: #fdeccb;
+}
+
+/* Predmeti u oglasu */
+.items {
+  margin: 0.9rem 0;
+  padding-left: 1.1rem;
+}
+
+.items li {
+  margin-bottom: 0.4rem;
+}
+
+.detail {
+  color: var(--text-muted);
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Traka kompletnosti */
+.score {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.bar {
+  height: 0.5rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  background: #e6ecee;
+  border-radius: 999px;
+}
+
+.fill {
+  height: 100%;
+  background: var(--teal);
+}
+
+/* Donji red kartice */
+.card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.card-footer .meta {
+  margin: 0;
+}
+
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.card-footer button,
+.retry {
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--teal);
+  background: transparent;
+  border: 1px solid var(--teal);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.card-footer button:hover,
+.retry:hover {
+  background: #eef4f5;
+}
+
+.card-footer button.danger {
+  color: #fff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.card-footer button.danger:hover {
+  background: #a82020;
+}
+
+.card-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

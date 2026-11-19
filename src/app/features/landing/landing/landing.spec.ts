@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Landing } from './landing';
 
 describe('Landing', () => {
@@ -8,6 +9,7 @@ describe('Landing', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Landing],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Landing);
@@ -17,5 +19,10 @@ describe('Landing', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should show four steps', () => {
+    const items = (fixture.nativeElement as HTMLElement).querySelectorAll('.step');
+    expect(items.length).toBe(4);
   });
 });

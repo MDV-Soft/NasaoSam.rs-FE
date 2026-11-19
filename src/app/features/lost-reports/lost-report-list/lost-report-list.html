@@ -4,11 +4,108 @@
 </header>
 
 <main class="content">
-  <h1>Moji oglasi</h1>
+  <div class="title-row">
+    <h1>Moji oglasi</h1>
+    <a class="new-report" routerLink="/novi-oglas">+ Izgubio sam nešto</a>
+  </div>
 
   @if (user !== null) {
-    <p>Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).</p>
+    <p class="user">Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).</p>
   }
 
-  <p>Ovde će biti lista tvojih oglasa.</p>
+  @if (actionError() !== '') {
+    <p class="form-error">{{ actionError() }}</p>
+  }
+
+  @if (reports(); as list) {
+    @if (list.length === 0) {
+      <p class="empty">Još nemaš nijedan oglas. Klikni „Izgubio sam nešto” da napraviš prvi.</p>
+    } @else {
+      @for (report of list; track report.id) {
+        <article class="report-card">
+          <div class="card-header">
+            <h2>{{ report.city }}</h2>
+            <span [class]="'status status-' + report.status.toLowerCase()">
+              {{ statusLabel(report.status) }}
+            </span>
+          </div>
+
+          <p class="meta">
+            Izgubljeno: {{ report.lostFrom | date: 'dd.MM.yyyy. HH:mm' }} –
+            {{ report.lostTo | date: 'dd.MM.yyyy. HH:mm' }}
+          </p>
+          @if (report.placeDescription) {
+            <p class="meta">Mesto: {{ report.placeDescription }}</p>
+          }
+
+          <ul class="items">
+            @for (item of report.items; track item.id) {
+              <li>
+                <strong>{{ itemTitle(item) }}</strong>
+                @if (item.color) {
+                  <span class="detail">, {{ colorLabel(item) }}</span>
+                }
+                @if (item.brand) {
+                  <span class="detail">, {{ item.brand }}</span>
+                }
+                @if (item.category === 'DOCUMENT' && item.hasNameHash) {
+                  <span class="detail">, ime je zaštićeno šifrom</span>
+                }
+                @if (item.description) {
+                  <p class="description">{{ item.description }}</p>
+                }
+              </li>
+            }
+          </ul>
+
+          <div class="score">
+            <span>Kompletnost oglasa: {{ report.completenessScore }}%</span>
+            <div class="bar" role="progressbar" [attr.aria-valuenow]="report.completenessScore" aria-valuemin="0" aria-valuemax="100">
+              <div class="fill" [style.width.%]="report.completenessScore"></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            @if (report.status === 'ACTIVE') {
+              <span class="meta">Ističe: {{ report.expiresAt | date: 'dd.MM.yyyy.' }}</span>
+
+              @if (confirmingId() === report.id) {
+                <span class="confirm">
+                  Zatvoriti oglas?
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="confirmClose(report.id)"
+                    [disabled]="closingId() !== null"
+                  >
+                    @if (closingId() === report.id) {
+                      Zatvaranje...
+                    } @else {
+                      Da, zatvori
+                    }
+                  </button>
+                  <button type="button" (click)="cancelClose()" [disabled]="closingId() !== null">
+                    Odustani
+                  </button>
+                </span>
+              } @else {
+                <button type="button" class="close-report" (click)="askClose(report.id)">
+                  Zatvori oglas
+                </button>
+              }
+            } @else if (report.closedAt) {
+              <span class="meta">
+                {{ statusLabel(report.status) }}: {{ report.closedAt | date: 'dd.MM.yyyy.' }}
+              </span>
+            }
+          </div>
+        </article>
+      }
+    }
+  } @else if (loadFailed()) {
+    <p class="form-error">Oglasi nisu učitani. Proveri da li backend radi.</p>
+    <button type="button" class="retry" (click)="loadReports()">Pokušaj ponovo</button>
+  } @else {
+    <p class="empty">Učitavanje oglasa...</p>
+  }
 </main>
