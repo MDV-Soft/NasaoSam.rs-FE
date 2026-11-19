@@ -23,7 +23,7 @@ svg {
 
 /* Sekcije imaju istu širinu i normalne margine (16px sa strane na telefonu) */
 .nav,
-.hero,
+.hero-inner,
 .how,
 .cta {
   box-sizing: border-box;
@@ -60,11 +60,13 @@ svg {
 
 /* ===================== Meni ===================== */
 .nav {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 0;
+  min-height: 4.25rem;
 }
 
 .brand {
@@ -133,80 +135,72 @@ svg {
   background: var(--teal-dark);
 }
 
-/* ===================== Uvod ===================== */
+/* ===================== Uvod (cela širina) ===================== */
+/* Pozadina ide od ivice do ivice i ispod menija; sadržaj je u .hero-inner, iste širine kao ostatak */
 .hero {
-  position: relative;
+  --nav-h: 4.25rem;
+  margin-top: calc(-1 * var(--nav-h));
+  padding: calc(var(--nav-h) + 2.5rem) 0 3.5rem;
+  background-color: #e9f1f0;
+  /* Blagi plan grada: ulice se vide desno, a levo, ispod teksta, bledi u punu boju */
+  --streets: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.8' stroke-linecap='round'%3E%3Cpath stroke-width='12' d='M-10 120 C80 96 170 150 370 120'/%3E%3Cpath stroke-width='12' d='M210 -10 C196 120 236 240 210 370'/%3E%3Cpath stroke-width='5' d='M-10 262 L370 286 M64 -10 L92 370 M300 -10 C322 100 282 210 300 370 M-10 44 L370 62 M134 128 L152 370 M222 200 L370 212'/%3E%3C/g%3E%3C/svg%3E");
+  background-image:
+    linear-gradient(90deg, #edf3f2 0%, rgba(237, 243, 242, 0.92) 38%, rgba(237, 243, 242, 0) 72%),
+    var(--streets);
+  background-size:
+    auto,
+    360px 360px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Uzan ekran: ulice blede odozgo nadole, da tekst ostane na mirnoj pozadini */
+@media (max-width: 899px) {
+  .hero {
+    background-image:
+      linear-gradient(
+        180deg,
+        #edf3f2 0%,
+        rgba(237, 243, 242, 0.94) 45%,
+        rgba(237, 243, 242, 0) 70%
+      ),
+      var(--streets);
+  }
+}
+
+.hero-inner {
   display: grid;
   gap: 2.5rem;
-  padding: 3rem 1.5rem;
-  overflow: clip;
-  background:
-    radial-gradient(circle at 88% 15%, rgba(242, 179, 107, 0.28), transparent 38%),
-    radial-gradient(circle at 5% 95%, rgba(47, 143, 131, 0.2), transparent 45%),
-    linear-gradient(160deg, #e6f1f2 0%, #f4f7f2 55%, #fbf3e8 100%);
-  border: 1px solid var(--border);
-  border-radius: 1.75rem;
+  align-items: center;
 }
 
-/* Tačkasta mreža koja bledi naniže */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(15, 76, 92, 0.13) 1px, transparent 1.5px);
-  background-size: 22px 22px;
-  mask-image: linear-gradient(to bottom, #000, transparent 85%);
-  pointer-events: none;
-}
-
-.hero > * {
-  position: relative;
+@media (min-width: 900px) {
+  .hero-inner {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .eyebrow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.75rem;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--teal);
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--owner);
 }
 
-.live-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  background: var(--finder);
-  border-radius: 50%;
-  animation: ping 2s ease-out infinite;
-}
-
-@keyframes ping {
-  0% {
-    box-shadow: 0 0 0 0 rgba(201, 113, 31, 0.5);
-  }
-  80%,
-  100% {
-    box-shadow: 0 0 0 0.6rem rgba(201, 113, 31, 0);
-  }
+.eyebrow svg {
+  width: 1rem;
 }
 
 .title {
-  margin: 1.25rem 0 0;
-  font-size: clamp(3.2rem, 12vw, 6rem);
+  margin: 0.75rem 0 0;
+  font-size: clamp(3.2rem, 11vw, 5.75rem);
   line-height: 0.95;
   letter-spacing: -0.045em;
   color: var(--teal);
-}
-
-.title span {
-  background: linear-gradient(100deg, var(--teal) 0%, var(--owner) 60%, var(--finder) 130%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 
 .subtitle {
@@ -279,148 +273,307 @@ svg {
 .trust li {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .trust svg {
-  width: 1.1rem;
-  padding: 0.15rem;
-  color: #fff;
-  background: var(--owner);
-  border-radius: 50%;
+  width: 1rem;
+  color: var(--owner);
   stroke-width: 3;
 }
 
-/* ---------- Ilustracija: izgubljeno + pronađeno ---------- */
+/* ---------- Ilustracija toka: oglas + fotografija → AI → poklapanje ---------- */
+/*
+  Sve mere unutar .stage su u em, a 1em = širina kolone / 34 (najviše 16px).
+  Zato se kartice, linije (SVG) i paketi skaliraju zajedno i uvek se poklapaju.
+  SVG platno: 34em x 23em = 544 x 368 jedinica.
+*/
 .hero-visual {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem 0;
+  container-type: inline-size;
 }
 
+.stage {
+  position: relative;
+  width: 34em;
+  height: 23em;
+  margin-inline: auto;
+  font-size: min(16px, 100cqw / 34);
+}
+
+.wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: none;
+}
+
+.wires-tall {
+  display: none;
+}
+
+.wire {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-dasharray: 5 6;
+  animation:
+    fade-in 0.6s 1s ease-out both,
+    dash 0.9s linear infinite;
+}
+
+.wire.owner {
+  stroke: var(--owner);
+}
+
+.wire.finder {
+  stroke: var(--finder);
+}
+
+.wire.wire-out {
+  stroke: var(--teal);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Paketi podataka (pokreće ih animateMotion u HTML-u) */
+.packet text {
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: var(--owner);
+}
+
+.chip-owner {
+  fill: #fff;
+  stroke: var(--owner);
+  stroke-width: 1.5;
+}
+
+.thumb {
+  fill: #d4a679;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.thumb-item {
+  fill: #23292b;
+}
+
+.spark {
+  fill: var(--teal);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+/* Kartice */
 .demo-card {
+  position: absolute;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  width: min(16rem, 80%);
-  padding: 1rem 1.1rem;
+  gap: 0.45em;
+  padding: 0.85em 0.95em;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 1rem;
-  box-shadow: 0 18px 40px -22px rgba(15, 76, 92, 0.45);
+  border-radius: 0.9em;
+  box-shadow: 0 1.2em 2.5em -1.4em rgba(15, 76, 92, 0.45);
 }
 
-.demo-lost {
-  transform: translateX(-12%) rotate(-3deg);
-  animation: from-left 0.9s 0.45s var(--ease) both;
-}
-
-.demo-found {
-  transform: translateX(12%) rotate(2.5deg);
-  animation: from-right 0.9s 0.65s var(--ease) both;
-}
-
-@keyframes from-left {
-  from {
-    opacity: 0;
-    transform: translateX(-40%) rotate(-10deg);
-  }
-}
-
-@keyframes from-right {
-  from {
-    opacity: 0;
-    transform: translateX(40%) rotate(10deg);
-  }
-}
-
-.demo-card .lane-tag {
+.stage .lane-tag {
   align-self: flex-start;
+  padding: 0.3em 0.75em;
+  font-size: 0.66em;
 }
 
 .demo-card strong {
-  font-size: 1rem;
+  font-size: 1em;
+  line-height: 1.2;
   color: var(--teal);
 }
 
 .demo-meta {
-  font-size: 0.78rem;
+  font-size: 0.75em;
   color: var(--text-muted);
 }
 
-.demo-line {
-  height: 0.4rem;
-  background: #eef1f3;
-  border-radius: 999px;
+.demo-lost {
+  top: 1em;
+  left: 0;
+  width: 13.5em;
+  animation: card-in 0.8s 0.4s var(--ease) both;
 }
 
-.demo-line.short {
-  width: 60%;
+.demo-found {
+  bottom: 1em;
+  left: 0;
+  width: 13.5em;
+  animation: card-in 0.8s 0.6s var(--ease) both;
 }
 
-.demo-photo {
-  display: grid;
-  place-items: center;
-  height: 4.5rem;
-  color: var(--finder);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), transparent 50%),
-    linear-gradient(135deg, #f7dcbc, #e9c9a6);
-  border-radius: 0.6rem;
-}
-
-.demo-photo svg {
-  width: 2.25rem;
-  filter: blur(1px);
-}
-
-/* Isprekidana veza između kartica, sa bedžom u sredini */
-.demo-link {
-  position: relative;
-  display: grid;
-  place-items: center;
-  height: 4.5rem;
-  width: 100%;
-}
-
-.demo-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  border-left: 2px dashed var(--owner);
-  transform-origin: top;
-  animation: grow 0.5s 1s var(--ease) both;
-}
-
-@keyframes grow {
+@keyframes card-in {
   from {
-    transform: scaleY(0);
+    opacity: 0;
+    transform: translateX(-1.5em);
   }
 }
 
-.demo-match {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #fff;
-  background: var(--teal);
-  border-radius: 999px;
-  box-shadow: 0 10px 24px -10px rgba(15, 76, 92, 0.7);
-  animation:
-    pop 0.6s 1.3s var(--ease) both,
-    bob 3s 2s ease-in-out infinite;
+/* Ključne reči iz opisa: svaka zasvetli kad njen paket krene ka AI */
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
 }
 
-.demo-match svg {
-  width: 1rem;
-  color: var(--finder-line);
+.keywords span {
+  padding: 0.2em 0.55em;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--owner);
+  background: var(--owner-soft);
+  border-radius: 999px;
+  animation: send 2.7s var(--kd) infinite;
+}
+
+.keywords span:nth-child(1) {
+  --kd: 1.6s;
+}
+
+.keywords span:nth-child(2) {
+  --kd: 2.5s;
+}
+
+.keywords span:nth-child(3) {
+  --kd: 3.4s;
+}
+
+@keyframes send {
+  0%,
+  20%,
+  100% {
+    color: var(--owner);
+    background: var(--owner-soft);
+  }
+  6% {
+    color: #fff;
+    background: var(--owner);
+  }
+}
+
+/* Fotografija nalazača, sa okvirom kamere i blicem pri učitavanju */
+.demo-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.55em;
+}
+
+.photo-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  stroke: none;
+  stroke-width: 1;
+}
+
+.viewfinder {
+  position: absolute;
+  inset: 0.45em;
+  opacity: 0.85;
+  background:
+    linear-gradient(#fff, #fff) left top / 0.9em 2px,
+    linear-gradient(#fff, #fff) left top / 2px 0.9em,
+    linear-gradient(#fff, #fff) right top / 0.9em 2px,
+    linear-gradient(#fff, #fff) right top / 2px 0.9em,
+    linear-gradient(#fff, #fff) left bottom / 0.9em 2px,
+    linear-gradient(#fff, #fff) left bottom / 2px 0.9em,
+    linear-gradient(#fff, #fff) right bottom / 0.9em 2px,
+    linear-gradient(#fff, #fff) right bottom / 2px 0.9em;
+  background-repeat: no-repeat;
+}
+
+.shutter {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  animation: shutter 0.7s 1.1s ease-out both;
+}
+
+@keyframes shutter {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* AI čvor (translate služi za položaj, transform za animaciju) */
+.hub {
+  position: absolute;
+  top: 11.25em;
+  left: 21.25em;
+  translate: -50% -50%;
+}
+
+.hub-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 4.5em;
+  height: 4.5em;
+  color: #fff;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.45em rgba(15, 76, 92, 0.12);
+  animation: pop 0.6s 1.1s var(--ease) both;
+}
+
+.hub-core svg {
+  width: 1.9em;
+  animation: spin 9s linear infinite;
+}
+
+/* Isprekidani prsten koji se okreće i talas koji se širi */
+.hub-core::before,
+.hub-core::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.hub-core::before {
+  inset: -0.6em;
+  border: 2px dashed rgba(15, 76, 92, 0.35);
+  animation: spin 12s linear infinite;
+}
+
+.hub-core::after {
+  inset: 0;
+  border: 2px solid var(--teal);
+  animation: halo 1.8s ease-out infinite;
+}
+
+.hub-label {
+  position: absolute;
+  top: calc(100% + 0.9em);
+  left: 50%;
+  translate: -50% 0;
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--teal);
 }
 
 @keyframes pop {
@@ -430,9 +583,74 @@ svg {
   }
 }
 
-@keyframes bob {
-  50% {
-    transform: translateY(-4px);
+/* Rezultat: procenat raste, a kartica zasvetli kad stigne novi paket */
+.result {
+  position: absolute;
+  top: 11.25em;
+  left: 26.125em;
+  translate: 0 -50%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  width: 6.5em;
+  padding: 0.8em 0.6em;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.9em;
+  animation:
+    fade-in 0.6s 1.4s ease-out both,
+    arrive 1.35s 3.75s ease-out infinite;
+}
+
+@keyframes arrive {
+  0% {
+    box-shadow: 0 0 0 0 rgba(47, 143, 131, 0.45);
+  }
+  45%,
+  100% {
+    box-shadow: 0 0 0 0.7em rgba(47, 143, 131, 0);
+  }
+}
+
+.result-count {
+  font-size: 1.9em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--teal);
+}
+
+.result-label {
+  font-size: 0.66em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--owner);
+}
+
+.result-bar {
+  width: 100%;
+  height: 0.35em;
+  margin-top: 0.3em;
+  overflow: hidden;
+  background: #e8ecef;
+  border-radius: 999px;
+}
+
+.result-bar span {
+  display: block;
+  width: 92%;
+  height: 100%;
+  background: var(--owner);
+  border-radius: inherit;
+  transform-origin: left;
+  animation: bar-fill 1.4s 1.4s ease-out both;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
   }
 }
 
@@ -458,62 +676,60 @@ svg {
   }
 }
 
-/* Predmeti koji lebde oko ilustracije */
-.float-chip {
-  position: absolute;
-  display: none;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--teal);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  animation:
-    pop 0.6s var(--d) var(--ease) both,
-    bob 4s var(--d) ease-in-out infinite;
-}
-
-.float-chip svg {
-  width: 1rem;
-}
-
-.chip-a {
-  --d: 1.6s;
-  top: 0;
-  left: 0;
-}
-
-.chip-b {
-  --d: 1.8s;
-  top: 45%;
-  right: 0;
-}
-
-.chip-c {
-  --d: 2s;
-  bottom: 0;
-  left: 6%;
-}
-
-@media (min-width: 900px) {
-  .hero {
-    grid-template-columns: 1.15fr 0.85fr;
-    align-items: center;
-    padding: 4.5rem 3.5rem;
+/* Uska kolona (telefon, manji ekran): kartice gore jedna pored druge, AI i rezultat ispod.
+   SVG platno: 22em x 28em = 352 x 448 jedinica. */
+@container (width < 30rem) {
+  .stage {
+    width: 22em;
+    height: 28em;
+    font-size: min(16px, 100cqw / 22);
   }
 
-  .float-chip {
-    display: inline-flex;
+  .wires-wide {
+    display: none;
+  }
+
+  .wires-tall {
+    display: block;
+  }
+
+  .demo-lost {
+    top: 0;
+    width: 10.5em;
+  }
+
+  .demo-found {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: auto;
+    width: 10.5em;
+  }
+
+  .hub {
+    top: 18.125em;
+    left: 11em;
+  }
+
+  .result {
+    top: 24.5em;
+    left: 11em;
+    translate: -50% 0;
+    flex-direction: row;
+    gap: 0.5em;
+    width: auto;
+    padding: 0.7em 1.1em;
+  }
+
+  .result-bar {
+    display: none;
   }
 }
 
 /* ===================== Kako funkcioniše ===================== */
 .how {
   position: relative;
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
   padding: 3rem 1.25rem;
   /* clip, a ne hidden: animacije pri skrolovanju moraju da prate prozor, ne ovu karticu */
   overflow: clip;
@@ -1329,6 +1545,10 @@ svg {
 
 /* Ko je u sistemu isključio animacije, dobija mirnu stranicu */
 @media (prefers-reduced-motion: reduce) {
+  .packet {
+    display: none;
+  }
+
   *,
   *::before,
   *::after {
