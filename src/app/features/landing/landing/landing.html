@@ -1,42 +1,359 @@
 <!-- Gornji meni -->
-<header class="nav">
-  <a class="nav-link" routerLink="/login">Izgubio si?</a>
-  <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
-  <button class="nav-link" type="button">Nasao si?</button>
+<header class="nav load">
+  <a class="brand" routerLink="/">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </svg>
+    </span>
+    NasaoSam
+  </a>
+  <nav class="nav-links" aria-label="Glavni meni">
+    <a class="nav-link nav-link-how" href="#kako-funkcionise">Kako funkcioniše</a>
+    <a class="nav-link" routerLink="/login">Izgubio si?</a>
+    <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
+    <button class="nav-link nav-link-strong" type="button">Našao si?</button>
+  </nav>
 </header>
 
-<main class="page">
-  <!-- Naslov i opis -->
-  <h1 class="title">NasaoSam</h1>
-  <p class="subtitle">
-    Platforma za izgubljene i pronađene stvari širom Srbije. Opiši šta si izgubio ili fotografiši šta
-    si našao, a veštačka inteligencija spaja stvari sa njihovim vlasnicima.
-  </p>
+<main>
+  <!-- ===================== Uvod ===================== -->
+  <section class="hero">
+    <div class="hero-text">
+      <span class="eyebrow load" style="--d: 0.1s">
+        <span class="live-dot" aria-hidden="true"></span>
+        Izgubljeno i nađeno · cela Srbija
+      </span>
 
-  <!-- Tamna kartica sa četiri koraka -->
-  <section class="how">
-    <span class="pill">KAKO FUNKCIONIŠE</span>
-    <h2>Od prijave do povratka u četiri koraka</h2>
+      <h1 class="title load" style="--d: 0.2s">Nasao<span>Sam</span></h1>
 
-    <ol class="steps">
-      @for (step of steps; track step.number) {
-        <li class="step">
-          <span class="step-badge">{{ step.number }}</span>
-          <div class="step-card">
-            <div>
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.description }}</p>
-            </div>
-            <span class="step-number">0{{ step.number }}</span>
-          </div>
+      <p class="subtitle load" style="--d: 0.35s">
+        Platforma za izgubljene i pronađene stvari širom Srbije. Opiši šta si izgubio ili
+        fotografiši šta si našao, a veštačka inteligencija spaja stvari sa njihovim vlasnicima.
+      </p>
+
+      <div class="hero-actions load" style="--d: 0.5s">
+        <a class="btn btn-primary" routerLink="/login">
+          Izgubio sam
+          <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+        <button class="btn btn-light" type="button">
+          Našao sam
+          <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </button>
+      </div>
+
+      <ul class="trust load" style="--d: 0.65s">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+          Nalazaču ne treba nalog
         </li>
-      }
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+          Lični podaci su šifrovani
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+          AI spaja oglase i nalaze
+        </li>
+      </ul>
+    </div>
+
+    <!-- Ilustracija: izgubljeno + pronađeno = poklapanje (samo ukras) -->
+    <div class="hero-visual" aria-hidden="true">
+      <span class="float-chip chip-a">
+        <svg viewBox="0 0 24 24">
+          <circle cx="8" cy="12" r="4" />
+          <path d="M12 12h9M18 12v3M21 12v2" />
+        </svg>
+        Ključevi
+      </span>
+      <span class="float-chip chip-b">
+        <svg viewBox="0 0 24 24">
+          <rect x="7" y="3" width="10" height="18" rx="2" />
+          <path d="M11 18h2" />
+        </svg>
+        Telefon
+      </span>
+      <span class="float-chip chip-c">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="6" width="18" height="12" rx="2" />
+          <circle cx="9" cy="12" r="2" />
+          <path d="M14 10h4M14 14h3" />
+        </svg>
+        Lična karta
+      </span>
+
+      <div class="demo-card demo-lost">
+        <span class="lane-tag tag-owner">Izgubljeno</span>
+        <strong>Crni kožni novčanik</strong>
+        <span class="demo-meta">Beograd · autobus 26</span>
+        <span class="demo-line"></span>
+        <span class="demo-line short"></span>
+      </div>
+
+      <div class="demo-link">
+        <span class="demo-match">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+          </svg>
+          <span class="match-count"></span> poklapanje
+        </span>
+      </div>
+
+      <div class="demo-card demo-found">
+        <span class="lane-tag tag-finder">Pronađeno</span>
+        <span class="demo-photo">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="6" width="18" height="13" rx="2" />
+            <path d="M16 12h5v4h-5a2 2 0 0 1 0-4z" />
+          </svg>
+        </span>
+        <span class="demo-meta">Beograd · Autokomanda</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Kako funkcioniše ===================== -->
+  <section class="how" id="kako-funkcionise">
+    <div class="how-head reveal">
+      <span class="pill">KAKO FUNKCIONIŠE</span>
+      <h2>Od prijave do povratka u četiri koraka</h2>
+      <p>
+        Jedni nešto izgube, drugi to pronađu. Mi ih spojimo. Evo šta radi svako od vas, korak po
+        korak.
+      </p>
+      <div class="legend">
+        <span class="lane-tag tag-owner">Ako si izgubio</span>
+        <span class="lane-tag tag-finder">Ako si našao</span>
+      </div>
+    </div>
+
+    <ol class="flow">
+      <!-- 1. Prijava: dve strane, svaka za sebe -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">1</span>
+          <h3>Prijavi</h3>
+          <span class="step-number">01</span>
+        </div>
+
+        <div class="lanes">
+          <article class="lane lane-owner reveal">
+            <span class="lane-tag tag-owner">Ako si izgubio</span>
+            <div class="lane-icon icon-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              <span class="pin-shadow"></span>
+            </div>
+            <h4>Opiši šta si izgubio</h4>
+            <p>
+              Izaberi šta je, kakve je boje i po čemu se razlikuje. Na mapi okvirno obeleži gde si
+              ga poslednji put imao.
+            </p>
+            <p class="lane-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+              Ime sa dokumenta ne napušta tvoj telefon: šaljemo samo njegovu šifru.
+            </p>
+          </article>
+
+          <article class="lane lane-finder reveal">
+            <span class="lane-tag tag-finder">Ako si našao</span>
+            <div class="lane-icon icon-camera" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              <span class="flash"></span>
+            </div>
+            <h4>Fotografiši šta si našao</h4>
+            <p>
+              Slikaj predmet i javi gde si ga našao. Ne moraš da praviš nalog: dobijaš link preko
+              kog pratiš svoj nalaz.
+            </p>
+            <p class="lane-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+              Fotografiju zamagljujemo i iz nje brišemo skrivene podatke o lokaciji.
+            </p>
+          </article>
+        </div>
+
+        <!-- Dve strelice se spajaju u jednu -->
+        <div class="connector connector-merge" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M25 0 C25 22, 50 18, 50 40" />
+            <path class="flow-line finder" d="M75 0 C75 22, 50 18, 50 40" />
+          </svg>
+          <span class="arrow-head" style="left: 50%"></span>
+        </div>
+      </li>
+
+      <!-- 2. AI upoređuje: zajednički korak -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">2</span>
+          <h3>AI upoređuje</h3>
+          <span class="step-number">02</span>
+        </div>
+
+        <article class="joint reveal">
+          <div class="ai-demo" aria-hidden="true">
+            <span class="ai-thumb ai-text">
+              <span></span><span></span><span class="short"></span>
+            </span>
+            <span class="ai-core">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+              </svg>
+            </span>
+            <span class="ai-thumb ai-photo">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="6" width="18" height="13" rx="2" />
+                <path d="M16 12h5v4h-5a2 2 0 0 1 0-4z" />
+              </svg>
+            </span>
+            <span class="scan-line"></span>
+          </div>
+          <div class="joint-text">
+            <h4>Sistem traži par umesto tebe</h4>
+            <p>
+              Svaki nalaz se poredi sa aktivnim oglasima. Najbolje kandidate dodatno proverava
+              veštačka inteligencija, kao što bi to uradio pažljiv čovek.
+            </p>
+            <ul class="criteria">
+              <li>Vrsta i boja</li>
+              <li>Mesto i vreme</li>
+              <li>Opis i posebni znaci</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Jedna strelica se deli na dve -->
+        <div class="connector connector-split" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M50 0 C50 22, 25 18, 25 40" />
+            <path class="flow-line finder" d="M50 0 C50 22, 75 18, 75 40" />
+          </svg>
+          <span class="arrow-head owner" style="left: 25%"></span>
+          <span class="arrow-head finder" style="left: 75%"></span>
+        </div>
+      </li>
+
+      <!-- 3. Potvrda: opet dve strane -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">3</span>
+          <h3>Potvrda</h3>
+          <span class="step-number">03</span>
+        </div>
+
+        <div class="lanes">
+          <article class="lane lane-owner reveal">
+            <span class="lane-tag tag-owner">Ako si izgubio</span>
+            <div class="chat" aria-hidden="true">
+              <span class="bubble bubble-q">Šta piše na privesku?</span>
+              <span class="bubble bubble-a"
+                ><span class="typing">„Mića”, crvenim slovima</span></span
+              >
+            </div>
+            <h4>Potvrdi da je tvoje</h4>
+            <p>
+              Stiže ti obaveštenje o mogućem poklapanju. Odgovoriš na kontrolno pitanje o detalju
+              koji samo vlasnik zna.
+            </p>
+          </article>
+
+          <article class="lane lane-finder reveal">
+            <span class="lane-tag tag-finder">Ako si našao</span>
+            <div class="verify" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle class="verify-ring" cx="12" cy="12" r="9" />
+                <path class="verify-check" d="M7.5 12.5l3 3 6-6.5" />
+              </svg>
+              <span>Odgovor se slaže</span>
+            </div>
+            <h4>Proveri odgovor</h4>
+            <p>
+              Vidiš odgovor vlasnika i uporediš ga sa onim što držiš u ruci. Ti odlučuješ da li je
+              to prava osoba.
+            </p>
+          </article>
+        </div>
+
+        <div class="connector connector-merge" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M25 0 C25 22, 50 18, 50 40" />
+            <path class="flow-line finder" d="M75 0 C75 22, 50 18, 50 40" />
+          </svg>
+          <span class="arrow-head" style="left: 50%"></span>
+        </div>
+      </li>
+
+      <!-- 4. Povratak -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">4</span>
+          <h3>Povratak</h3>
+          <span class="step-number">04</span>
+        </div>
+
+        <article class="joint joint-final reveal">
+          <div class="handoff" aria-hidden="true">
+            <span class="person person-finder">N</span>
+            <span class="track">
+              <span class="parcel">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="6" width="18" height="13" rx="2" />
+                  <path d="M16 12h5v4h-5a2 2 0 0 1 0-4z" />
+                </svg>
+              </span>
+            </span>
+            <span class="person person-owner">V</span>
+          </div>
+          <div class="joint-text">
+            <h4>Stvar se vraća vlasniku</h4>
+            <p>
+              Dogovorite preuzimanje i stvar je ponovo kod svog vlasnika. Nalazač je upravo nekome
+              spasio dan.
+            </p>
+          </div>
+        </article>
+      </li>
     </ol>
   </section>
 
-  <!-- Dva velika dugmeta -->
-  <div class="actions">
-    <a class="action" routerLink="/login">Izgubio Sam</a>
-    <button class="action" type="button">Nasao Sam</button>
-  </div>
+  <!-- ===================== Poziv na akciju ===================== -->
+  <section class="cta">
+    <a class="cta-card cta-owner reveal" routerLink="/login">
+      <span class="lane-tag tag-owner">Izgubio si nešto?</span>
+      <strong>Napravi oglas za par minuta</strong>
+      <span class="cta-go">
+        Izgubio sam
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </span>
+    </a>
+    <button class="cta-card cta-finder reveal" type="button">
+      <span class="lane-tag tag-finder">Našao si nešto?</span>
+      <strong>Slikaj i prijavi, bez naloga</strong>
+      <span class="cta-go">
+        Našao sam
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </span>
+    </button>
+  </section>
 </main>
+
+<footer class="footer">NasaoSam.rs · izgubljeno i nađeno širom Srbije</footer>
