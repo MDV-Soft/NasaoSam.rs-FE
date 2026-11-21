@@ -14,9 +14,9 @@
   </div>
 
   <div class="lp-frame">
-    <div #map class="lp-map" aria-label="Mapa: klikni na mesto gde si izgubio predmet"></div>
+    <div #map class="lp-map" aria-label="Mapa: klikni da obeležiš mesto"></div>
     @if (current() === null) {
-      <p class="lp-overlay">Klikni na mapu tamo gde misliš da si izgubio predmet</p>
+      <p class="lp-overlay">{{ prompt() }}</p>
     }
   </div>
 
@@ -25,25 +25,27 @@
   }
 
   @if (current(); as location) {
-    <fieldset class="lp-radius">
-      <legend>Koliko si siguran u mesto?</legend>
-      <div class="lp-chips">
-        @for (option of radiusOptions; track option.meters) {
-          <button
-            type="button"
-            class="lp-chip"
-            [class.lp-chip-active]="location.radiusMeters === option.meters"
-            [attr.aria-pressed]="location.radiusMeters === option.meters"
-            (click)="setRadius(option.meters)"
-          >
-            <strong>{{ option.label }}</strong>
-            <span>{{ option.hint }}</span>
-          </button>
-        }
-      </div>
-      <p class="lp-note">
-        Pin ne mora biti tačan: prevuci ga ako treba, a krug pokazuje gde sistem traži nalaze.
-      </p>
-    </fieldset>
+    @if (showRadius()) {
+      <fieldset class="lp-radius">
+        <legend>Koliko si siguran u mesto?</legend>
+        <div class="lp-chips">
+          @for (option of radiusOptions; track option.meters) {
+            <button
+              type="button"
+              class="lp-chip"
+              [class.lp-chip-active]="location.radiusMeters === option.meters"
+              [attr.aria-pressed]="location.radiusMeters === option.meters"
+              (click)="setRadius(option.meters)"
+            >
+              <strong>{{ option.label }}</strong>
+              <span>{{ option.hint }}</span>
+            </button>
+          }
+        </div>
+        <p class="lp-note">
+          Pin ne mora biti tačan: prevuci ga ako treba, a krug pokazuje gde sistem traži nalaze.
+        </p>
+      </fieldset>
+    }
   }
 </div>

@@ -63,6 +63,13 @@ export class LocationPicker {
   location = input<MapLocation | null>(null);
   locationChange = output<MapLocation | null>();
 
+  // Vlasniku treba radijus ("koliko sam siguran u mesto"), a nalazaču ne: on zna gde je našao.
+  // Bez radijusa nema ni kruga na mapi, a lokacija se javlja sa radiusMeters = 0.
+  showRadius = input<boolean>(true);
+
+  // Natpis preko mape dok pin još nije postavljen
+  prompt = input<string>('Klikni na mapu tamo gde misliš da si izgubio predmet');
+
   readonly radiusOptions = RADIUS_OPTIONS;
 
   // Kopija ulaza koju mapa menja; kad roditelj pošalje novu vrednost, ona pobeđuje
@@ -97,7 +104,7 @@ export class LocationPicker {
     const location: MapLocation = {
       latitude: roundCoordinate(latitude),
       longitude: roundCoordinate(longitude),
-      radiusMeters: this.current()?.radiusMeters ?? DEFAULT_RADIUS_METERS,
+      radiusMeters: this.showRadius() ? (this.current()?.radiusMeters ?? DEFAULT_RADIUS_METERS) : 0,
     };
     this.update(location);
   }
@@ -230,7 +237,7 @@ export class LocationPicker {
       this.marker = L.marker(point, {
         draggable: true,
         keyboard: true,
-        title: 'Mesto gubitka (prevuci da pomeriš)',
+        title: 'Prevuci pin da ga pomeriš',
         icon: L.divIcon({
           className: 'lp-pin',
           html: '<span></span>',
@@ -247,7 +254,11 @@ export class LocationPicker {
       this.marker.setLatLng(point);
     }
 
-    if (this.circle === null) {
+    // Bez radijusa nema kruga: samo pin
+    if (!this.showRadius()) {
+      this.circle?.remove();
+      this.circle = null;
+    } else if (this.circle === null) {
       this.circle = L.circle(point, {
         radius: location.radiusMeters,
         color: '#0f4c5c',

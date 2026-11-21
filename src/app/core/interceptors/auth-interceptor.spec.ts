@@ -61,6 +61,35 @@ describe('authInterceptor', () => {
     req.flush({});
   });
 
+  it('does not add the token to the public finder routes (found report and link opening)', () => {
+    // Istekao token vlasnika iz istog browsera ne sme da obori javnu prijavu nalaza
+    authService.saveToken('expired-owner-token');
+
+    http.post(environment.apiUrl + '/found-reports', new FormData()).subscribe();
+    http.post(environment.apiUrl + '/finder/access', { token: 'x' }).subscribe();
+
+    const found = httpMock.expectOne(environment.apiUrl + '/found-reports');
+    const access = httpMock.expectOne(environment.apiUrl + '/finder/access');
+    expect(found.request.headers.has('Authorization')).toBe(false);
+    expect(access.request.headers.has('Authorization')).toBe(false);
+    found.flush({});
+    access.flush({});
+  });
+
+  it('keeps the owner logged in when a public finder route returns 401', () => {
+    authService.saveToken('abc123');
+
+    http.post(environment.apiUrl + '/found-reports', new FormData()).subscribe({
+      error: () => undefined,
+    });
+    httpMock
+      .expectOne(environment.apiUrl + '/found-reports')
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.getToken()).toBe('abc123');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
   it('does not send the token to a foreign server', () => {
     authService.saveToken('abc123');
 

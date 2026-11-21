@@ -25,6 +25,9 @@ describe('LocationPicker', () => {
     expect(page().querySelector('.lp-radius')).toBeNull();
   });
 
+  // Leaflet krug koji komponenta drži (privatno polje), za proveru da li postoji
+  const circleOf = (picker: LocationPicker) => (picker as unknown as { circle: unknown }).circle;
+
   it('places a pin with the default radius and rounds to 6 decimals (like the database)', async () => {
     component.placePin(44.81254321, 20.46123456);
     await fixture.whenStable();
@@ -34,6 +37,7 @@ describe('LocationPicker', () => {
     ]);
     expect(page().querySelector('.lp-pin')).not.toBeNull();
     expect(page().querySelector('.lp-radius')).not.toBeNull();
+    expect(circleOf(component)).not.toBeNull();
     expect(page().textContent).not.toContain('Klikni na mapu tamo');
   });
 
@@ -51,6 +55,38 @@ describe('LocationPicker', () => {
   it('ignores a radius when there is no pin', () => {
     component.setRadius(1000);
     expect(emitted).toEqual([]);
+  });
+
+  it('shows the prompt that the page gives it', async () => {
+    fixture.componentRef.setInput('prompt', 'Klikni na mapu tamo gde si našao predmet');
+    await fixture.whenStable();
+
+    expect(page().querySelector('.lp-overlay')?.textContent).toContain('gde si našao predmet');
+  });
+
+  describe('without the radius (finder)', () => {
+    beforeEach(async () => {
+      fixture.componentRef.setInput('showRadius', false);
+      await fixture.whenStable();
+    });
+
+    it('places a pin with radius 0 and hides the radius choice and the circle', async () => {
+      component.placePin(44.8, 20.4);
+      await fixture.whenStable();
+
+      expect(emitted.at(-1)).toEqual({ latitude: 44.8, longitude: 20.4, radiusMeters: 0 });
+      expect(page().querySelector('.lp-pin')).not.toBeNull();
+      expect(page().querySelector('.lp-radius')).toBeNull();
+      // jsdom ne iscrtava Leaflet krug, pa se proverava stanje komponente
+      expect(circleOf(component)).toBeNull();
+    });
+
+    it('keeps radius 0 when the pin is moved', async () => {
+      component.placePin(44.8, 20.4);
+      component.placePin(44.9, 20.5);
+
+      expect(emitted.at(-1)).toEqual({ latitude: 44.9, longitude: 20.5, radiusMeters: 0 });
+    });
   });
 
   it('removes the pin', async () => {

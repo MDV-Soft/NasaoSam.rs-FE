@@ -1,13 +1,8 @@
 /* Boje dve strane: vlasnik (zelenkasta) i nalazač (narandžasta) */
 :host {
-  --owner: #2f8f83;
-  --owner-soft: #e1f2ee;
+  /* Boje strana (--owner, --finder, --border...) su u styles.css; ovde su samo svetle varijante za linije */
   --owner-line: #8fd3c4;
-  --finder: #c9711f;
-  --finder-soft: #fcefe0;
   --finder-line: #f2b36b;
-  --border: #dfe7e8;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   display: block;
   /* clip, a ne hidden: hidden bi napravio zaseban scroll kontejner i pokvario animacije pri skrolovanju */
   overflow-x: clip;

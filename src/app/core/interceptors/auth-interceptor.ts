@@ -7,7 +7,14 @@ import { AuthService } from '../services/auth.service';
 
 // Putanje koje se zovu BEZ prijave. Tu ne šaljemo token, a 401 znači "pogrešna lozinka",
 // pa korisnika ne smemo slati na /login (već je tamo).
-const PUBLIC_PATHS: string[] = ['/auth/login', '/auth/register'];
+// Prijava nalaza i otvaranje linka nalazača su javni: backend odbija i neispravan token
+// (npr. istekao token vlasnika iz istog browsera) čak i na javnim rutama.
+const PUBLIC_PATHS: string[] = [
+  '/auth/login',
+  '/auth/register',
+  '/found-reports',
+  '/finder/access',
+];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
