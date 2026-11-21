@@ -1,0 +1,77 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DEFAULT_RADIUS_METERS, LocationPicker, MapLocation } from './location-picker';
+
+describe('LocationPicker', () => {
+  let component: LocationPicker;
+  let fixture: ComponentFixture<LocationPicker>;
+  let emitted: (MapLocation | null)[];
+
+  const page = (): HTMLElement => fixture.nativeElement as HTMLElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ imports: [LocationPicker] }).compileComponents();
+
+    fixture = TestBed.createComponent(LocationPicker);
+    component = fixture.componentInstance;
+    emitted = [];
+    component.locationChange.subscribe((location) => emitted.push(location));
+    await fixture.whenStable();
+  });
+
+  it('creates the map and asks the user to click on it', () => {
+    expect(page().querySelector('.leaflet-container')).not.toBeNull();
+    expect(page().textContent).toContain('Klikni na mapu');
+    // Radijus se bira tek kad postoji pin
+    expect(page().querySelector('.lp-radius')).toBeNull();
+  });
+
+  it('places a pin with the default radius and rounds to 6 decimals (like the database)', async () => {
+    component.placePin(44.81254321, 20.46123456);
+    await fixture.whenStable();
+
+    expect(emitted).toEqual([
+      { latitude: 44.812543, longitude: 20.461235, radiusMeters: DEFAULT_RADIUS_METERS },
+    ]);
+    expect(page().querySelector('.lp-pin')).not.toBeNull();
+    expect(page().querySelector('.lp-radius')).not.toBeNull();
+    expect(page().textContent).not.toContain('Klikni na mapu tamo');
+  });
+
+  it('keeps the chosen radius when the pin moves', async () => {
+    component.placePin(44.8, 20.4);
+    component.setRadius(1000);
+    component.placePin(44.9, 20.5);
+    await fixture.whenStable();
+
+    expect(emitted.at(-1)).toEqual({ latitude: 44.9, longitude: 20.5, radiusMeters: 1000 });
+    const active = page().querySelector('.lp-chip-active');
+    expect(active?.textContent).toContain('1 km');
+  });
+
+  it('ignores a radius when there is no pin', () => {
+    component.setRadius(1000);
+    expect(emitted).toEqual([]);
+  });
+
+  it('removes the pin', async () => {
+    component.placePin(44.8, 20.4);
+    component.clear();
+    await fixture.whenStable();
+
+    expect(emitted.at(-1)).toBeNull();
+    expect(page().querySelector('.lp-pin')).toBeNull();
+  });
+
+  it('shows the location it got from the form', async () => {
+    fixture.componentRef.setInput('location', {
+      latitude: 43.32,
+      longitude: 21.9,
+      radiusMeters: 100,
+    });
+    await fixture.whenStable();
+
+    expect(component.current()).toEqual({ latitude: 43.32, longitude: 21.9, radiusMeters: 100 });
+    expect(page().querySelector('.lp-pin')).not.toBeNull();
+    expect(page().querySelector('.lp-chip-active')?.textContent).toContain('100 m');
+  });
+});

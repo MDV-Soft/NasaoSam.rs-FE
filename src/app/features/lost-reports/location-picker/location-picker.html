@@ -1,0 +1,49 @@
+<div class="lp">
+  <div class="lp-toolbar">
+    <button type="button" class="lp-tool" (click)="useMyLocation()" [disabled]="locating()">
+      @if (locating()) {
+        Tražim lokaciju...
+      } @else {
+        Moja trenutna lokacija
+      }
+    </button>
+    <button type="button" class="lp-tool" (click)="pinAtCenter()">Pin na sredinu mape</button>
+    @if (current() !== null) {
+      <button type="button" class="lp-tool lp-tool-remove" (click)="clear()">Ukloni pin</button>
+    }
+  </div>
+
+  <div class="lp-frame">
+    <div #map class="lp-map" aria-label="Mapa: klikni na mesto gde si izgubio predmet"></div>
+    @if (current() === null) {
+      <p class="lp-overlay">Klikni na mapu tamo gde misliš da si izgubio predmet</p>
+    }
+  </div>
+
+  @if (message() !== '') {
+    <p class="lp-message">{{ message() }}</p>
+  }
+
+  @if (current(); as location) {
+    <fieldset class="lp-radius">
+      <legend>Koliko si siguran u mesto?</legend>
+      <div class="lp-chips">
+        @for (option of radiusOptions; track option.meters) {
+          <button
+            type="button"
+            class="lp-chip"
+            [class.lp-chip-active]="location.radiusMeters === option.meters"
+            [attr.aria-pressed]="location.radiusMeters === option.meters"
+            (click)="setRadius(option.meters)"
+          >
+            <strong>{{ option.label }}</strong>
+            <span>{{ option.hint }}</span>
+          </button>
+        }
+      </div>
+      <p class="lp-note">
+        Pin ne mora biti tačan: prevuci ga ako treba, a krug pokazuje gde sistem traži nalaze.
+      </p>
+    </fieldset>
+  }
+</div>

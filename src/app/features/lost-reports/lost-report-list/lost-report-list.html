@@ -10,7 +10,9 @@
   </div>
 
   @if (user !== null) {
-    <p class="user">Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).</p>
+    <p class="user">
+      Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).
+    </p>
   }
 
   @if (actionError() !== '') {
@@ -59,8 +61,14 @@
           </ul>
 
           <div class="score">
-            <span>Kompletnost oglasa: {{ report.completenessScore }}%</span>
-            <div class="bar" role="progressbar" [attr.aria-valuenow]="report.completenessScore" aria-valuemin="0" aria-valuemax="100">
+            <span>Preciznost oglasa: {{ report.completenessScore }}/100</span>
+            <div
+              class="bar"
+              role="progressbar"
+              [attr.aria-valuenow]="report.completenessScore"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
               <div class="fill" [style.width.%]="report.completenessScore"></div>
             </div>
           </div>

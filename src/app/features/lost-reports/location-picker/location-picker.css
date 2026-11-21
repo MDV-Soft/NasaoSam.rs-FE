@@ -1,0 +1,133 @@
+/* Bez enkapsulacije (vidi location-picker.ts): sve klase počinju sa "lp-" */
+.lp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lp .lp-tool,
+.lp .lp-chip {
+  font-family: inherit;
+}
+
+.lp .lp-tool {
+  width: auto;
+  margin: 0;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--teal);
+  background: #fff;
+  border: 1px solid #d5dbe1;
+  border-radius: 999px;
+}
+
+.lp .lp-tool:hover {
+  background: #eef4f5;
+}
+
+.lp .lp-tool-remove {
+  color: var(--error);
+}
+
+.lp-frame {
+  position: relative;
+}
+
+.lp-map {
+  height: 18rem;
+  border: 1px solid #d5dbe1;
+  border-radius: 0.75rem;
+  z-index: 0;
+}
+
+.lp-overlay {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  z-index: 500;
+  max-width: calc(100% - 2rem);
+  margin: 0;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  background: rgba(15, 76, 92, 0.9);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.lp-message {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--error);
+}
+
+.lp-radius {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.lp-radius legend {
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+}
+
+.lp-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.lp .lp-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--teal);
+  text-align: left;
+  background: #fff;
+  border: 1px solid #d5dbe1;
+  border-radius: 0.6rem;
+}
+
+.lp .lp-chip strong {
+  font-size: 0.95rem;
+}
+
+.lp .lp-chip:hover {
+  background: #eef4f5;
+}
+
+.lp .lp-chip-active,
+.lp .lp-chip-active:hover {
+  color: #fff;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.lp-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Pin: kapljica u boji aplikacije, vrh pokazuje tačku */
+.lp-pin span {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 2px;
+  background: var(--teal);
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transform: rotate(-45deg);
+  box-sizing: border-box;
+}

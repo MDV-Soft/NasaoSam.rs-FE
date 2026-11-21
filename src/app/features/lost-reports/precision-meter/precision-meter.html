@@ -1,0 +1,44 @@
+<aside class="meter" [class]="'tone-' + level().tone" aria-live="polite">
+  <p class="eyebrow">Preciznost oglasa</p>
+
+  <div class="score-row">
+    <span class="score">{{ score() }}</span>
+    <span class="of">/100</span>
+    <span class="level">{{ level().label }}</span>
+  </div>
+
+  <div
+    class="bar"
+    role="progressbar"
+    aria-label="Preciznost oglasa"
+    [attr.aria-valuenow]="score()"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div class="fill" [style.width.%]="score()"></div>
+    @for (tick of ticks; track tick) {
+      <span class="tick" [style.left.%]="tick"></span>
+    }
+  </div>
+
+  <p class="message">{{ level().message }}</p>
+
+  @if (topSuggestions().length > 0) {
+    <h2 class="tips-title">Najviše bodova donosi</h2>
+    <ol class="tips">
+      @for (suggestion of topSuggestions(); track suggestion.key; let first = $first) {
+        <li [class.first]="first">
+          <span class="tip-text">{{ suggestionText(suggestion) }}</span>
+          <span class="gain">+{{ suggestion.gain }}</span>
+        </li>
+      }
+    </ol>
+  } @else {
+    <p class="done">Popunio si sve što se boduje. Svaka reč u opisu i dalje pomaže.</p>
+  }
+
+  <p class="why">
+    Svaki nađeni predmet se poredi sa aktivnim oglasima. Što više tačnih detalja uneseš, to lakše
+    prepoznamo baš tvoj predmet i ređe ti šaljemo pogrešne predloge.
+  </p>
+</aside>
