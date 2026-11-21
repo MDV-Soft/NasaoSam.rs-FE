@@ -12,6 +12,14 @@ export const routes: Routes = [
   // Prijavljen korisnik nema šta da traži na loginu
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'registracija', component: Register, canActivate: [guestGuard] },
+  // Nalazač nema nalog: prijava nalaza je javna. Učitava se tek kad zatreba (u njoj je mapa).
+  {
+    path: 'nasao-sam',
+    loadComponent: () =>
+      import('./features/found-reports/found-report-form/found-report-form').then(
+        (m) => m.FoundReportForm,
+      ),
+  },
   // Samo za prijavljene
   { path: 'moji-oglasi', component: LostReportList, canActivate: [authGuard] },
   // Forma sa mapom (Leaflet) se učitava tek kad se otvori, da početna stranica ostane laka

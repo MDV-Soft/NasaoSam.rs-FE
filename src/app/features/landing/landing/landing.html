@@ -12,8 +12,7 @@
   <nav class="nav-links" aria-label="Glavni meni">
     <a class="nav-link nav-link-how" href="#kako-funkcionise">Kako funkcioniše</a>
     <a class="nav-link" routerLink="/login">Izgubio si?</a>
-    <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
-    <button class="nav-link nav-link-strong" type="button">Našao si?</button>
+    <a class="nav-link nav-link-strong" routerLink="/nasao-sam">Našao si?</a>
   </nav>
 </header>
 
@@ -44,12 +43,12 @@
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </a>
-          <button class="btn btn-light" type="button">
+          <a class="btn btn-light" routerLink="/nasao-sam">
             Našao sam
             <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
-          </button>
+          </a>
         </div>
 
         <ul class="trust load" style="--d: 0.65s">
@@ -610,14 +609,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </span>
     </a>
-    <button class="cta-card cta-finder reveal" type="button">
+    <a class="cta-card cta-finder reveal" routerLink="/nasao-sam">
       <span class="lane-tag tag-finder">Našao si nešto?</span>
       <strong>Slikaj i prijavi, bez naloga</strong>
       <span class="cta-go">
         Našao sam
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </span>
-    </button>
+    </a>
   </section>
 </main>
 
