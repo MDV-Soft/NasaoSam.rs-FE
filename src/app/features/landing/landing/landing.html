@@ -1,42 +1,624 @@
 <!-- Gornji meni -->
-<header class="nav">
-  <a class="nav-link" routerLink="/login">Izgubio si?</a>
-  <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
-  <button class="nav-link" type="button">Nasao si?</button>
+<header class="nav load">
+  <a class="brand" routerLink="/">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </svg>
+    </span>
+    NasaoSam
+  </a>
+  <nav class="nav-links" aria-label="Glavni meni">
+    <a class="nav-link nav-link-how" href="#kako-funkcionise">Kako funkcioniše</a>
+    <a class="nav-link" routerLink="/login">Izgubio si?</a>
+    <!-- Stranica za nalazača još ne postoji, pa dugme za sada ništa ne radi -->
+    <button class="nav-link nav-link-strong" type="button">Našao si?</button>
+  </nav>
 </header>
 
-<main class="page">
-  <!-- Naslov i opis -->
-  <h1 class="title">NasaoSam</h1>
-  <p class="subtitle">
-    Platforma za izgubljene i pronađene stvari širom Srbije. Opiši šta si izgubio ili fotografiši šta
-    si našao, a veštačka inteligencija spaja stvari sa njihovim vlasnicima.
-  </p>
+<main>
+  <!-- ===================== Uvod (cela širina stranice) ===================== -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="eyebrow load" style="--d: 0.1s">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+            <circle cx="12" cy="10" r="2.5" />
+          </svg>
+          Izgubljeno i nađeno · cela Srbija
+        </p>
 
-  <!-- Tamna kartica sa četiri koraka -->
-  <section class="how">
-    <span class="pill">KAKO FUNKCIONIŠE</span>
-    <h2>Od prijave do povratka u četiri koraka</h2>
+        <h1 class="title load" style="--d: 0.2s">NasaoSam</h1>
 
-    <ol class="steps">
-      @for (step of steps; track step.number) {
-        <li class="step">
-          <span class="step-badge">{{ step.number }}</span>
-          <div class="step-card">
-            <div>
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.description }}</p>
-            </div>
-            <span class="step-number">0{{ step.number }}</span>
+        <p class="subtitle load" style="--d: 0.35s">
+          Platforma za izgubljene i pronađene stvari širom Srbije. Opiši šta si izgubio ili
+          fotografiši šta si našao, a veštačka inteligencija spaja stvari sa njihovim vlasnicima.
+        </p>
+
+        <div class="hero-actions load" style="--d: 0.5s">
+          <a class="btn btn-primary" routerLink="/login">
+            Izgubio sam
+            <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          <button class="btn btn-light" type="button">
+            Našao sam
+            <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
+
+        <ul class="trust load" style="--d: 0.65s">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+            Nalazaču ne treba nalog
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+            Lični podaci su šifrovani
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+            Stvari se vraćaju vlasnicima
+          </li>
+        </ul>
+      </div>
+
+      <!--
+        Ilustracija toka: opis vlasnika i fotografija nalazača ulaze u AI, a izlazi poklapanje.
+        Dva rasporeda: širok (kartice levo, AI u sredini, rezultat desno) i uzan (jedno ispod
+        drugog). Koji se prikazuje, zavisi od širine kolone (container query u CSS-u).
+        Paketi podataka putuju po linijama preko SVG animateMotion.
+      -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="stage">
+          <!-- Širok raspored: platno 544 x 368 (= 34em x 23em) -->
+          <svg class="wires wires-wide" viewBox="0 0 544 368">
+            <path class="wire owner" d="M216 88 C262 88, 268 180, 304 180" />
+            <path class="wire finder" d="M216 270 C262 270, 268 180, 304 180" />
+            <path class="wire wire-out" d="M376 180 L414 180" />
+
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-17" y="-8.5" width="34" height="17" rx="8.5" />
+              <text y="3.2">crna</text>
+              <animateMotion
+                dur="2.7s"
+                begin="1.6s"
+                repeatCount="indefinite"
+                path="M216 88 C262 88, 268 180, 304 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="1.6s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-17" y="-8.5" width="34" height="17" rx="8.5" />
+              <text y="3.2">koža</text>
+              <animateMotion
+                dur="2.7s"
+                begin="2.5s"
+                repeatCount="indefinite"
+                path="M216 88 C262 88, 268 180, 304 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="2.5s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-20" y="-8.5" width="40" height="17" rx="8.5" />
+              <text y="3.2">konac</text>
+              <animateMotion
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+                path="M216 88 C262 88, 268 180, 304 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="thumb" x="-13" y="-10" width="26" height="20" rx="4" />
+              <rect class="thumb-item" x="-7" y="-4" width="14" height="9" rx="2" />
+              <animateMotion
+                dur="2.7s"
+                begin="2.05s"
+                repeatCount="indefinite"
+                path="M216 270 C262 270, 268 180, 304 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="2.05s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="thumb" x="-13" y="-10" width="26" height="20" rx="4" />
+              <rect class="thumb-item" x="-7" y="-4" width="14" height="9" rx="2" />
+              <animateMotion
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+                path="M216 270 C262 270, 268 180, 304 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <circle class="spark" r="5" />
+              <animateMotion
+                dur="1.35s"
+                begin="2.4s"
+                repeatCount="indefinite"
+                path="M376 180 L414 180"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.15;0.8;1"
+                dur="1.35s"
+                begin="2.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+          </svg>
+
+          <!-- Uzan raspored: platno 352 x 448 (= 22em x 28em) -->
+          <svg class="wires wires-tall" viewBox="0 0 352 448">
+            <path class="wire owner" d="M84 180 C84 236, 176 226, 176 254" />
+            <path class="wire finder" d="M268 180 C268 236, 176 226, 176 254" />
+            <path class="wire wire-out" d="M176 352 L176 388" />
+
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-17" y="-8.5" width="34" height="17" rx="8.5" />
+              <text y="3.2">crna</text>
+              <animateMotion
+                dur="2.7s"
+                begin="1.6s"
+                repeatCount="indefinite"
+                path="M84 180 C84 236, 176 226, 176 254"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="1.6s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-17" y="-8.5" width="34" height="17" rx="8.5" />
+              <text y="3.2">koža</text>
+              <animateMotion
+                dur="2.7s"
+                begin="2.5s"
+                repeatCount="indefinite"
+                path="M84 180 C84 236, 176 226, 176 254"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="2.5s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="chip-owner" x="-20" y="-8.5" width="40" height="17" rx="8.5" />
+              <text y="3.2">konac</text>
+              <animateMotion
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+                path="M84 180 C84 236, 176 226, 176 254"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="thumb" x="-13" y="-10" width="26" height="20" rx="4" />
+              <rect class="thumb-item" x="-7" y="-4" width="14" height="9" rx="2" />
+              <animateMotion
+                dur="2.7s"
+                begin="2.05s"
+                repeatCount="indefinite"
+                path="M268 180 C268 236, 176 226, 176 254"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="2.05s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <rect class="thumb" x="-13" y="-10" width="26" height="20" rx="4" />
+              <rect class="thumb-item" x="-7" y="-4" width="14" height="9" rx="2" />
+              <animateMotion
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+                path="M268 180 C268 236, 176 226, 176 254"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0;0"
+                keyTimes="0;0.18;0.68;0.85;1"
+                dur="2.7s"
+                begin="3.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+            <g class="packet" opacity="0">
+              <circle class="spark" r="5" />
+              <animateMotion
+                dur="1.35s"
+                begin="2.4s"
+                repeatCount="indefinite"
+                path="M176 352 L176 388"
+              />
+              <animate
+                attributeName="opacity"
+                values="0;1;1;0"
+                keyTimes="0;0.15;0.8;1"
+                dur="1.35s"
+                begin="2.4s"
+                repeatCount="indefinite"
+              />
+            </g>
+          </svg>
+
+          <!-- Oglas vlasnika: ključne reči iz opisa su ono što putuje ka AI -->
+          <div class="demo-card demo-lost">
+            <span class="lane-tag tag-owner">Izgubljeno</span>
+            <strong>Crni kožni novčanik</strong>
+            <span class="keywords">
+              <span>crna</span><span>koža</span><span>crveni konac</span>
+            </span>
+            <span class="demo-meta">Beograd · autobus 26</span>
           </div>
-        </li>
-      }
+
+          <!-- Nalaz: fotografija koju je nalazač upravo napravio -->
+          <div class="demo-card demo-found">
+            <span class="lane-tag tag-finder">Pronađeno</span>
+            <span class="demo-photo">
+              <svg class="photo-art" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="ns-hero-table" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#d4a679" />
+                    <stop offset="1" stop-color="#a87447" />
+                  </linearGradient>
+                </defs>
+                <rect width="160" height="90" fill="url(#ns-hero-table)" />
+                <path
+                  d="M0 18 C50 14, 110 24, 160 16 M0 52 C60 48, 100 58, 160 50 M0 78 C40 74, 120 84, 160 76"
+                  stroke="#fff"
+                  stroke-opacity="0.12"
+                  stroke-width="2"
+                />
+                <ellipse cx="82" cy="72" rx="40" ry="6" fill="#000" fill-opacity="0.22" />
+                <rect x="44" y="24" width="76" height="46" rx="7" fill="#23292b" />
+                <path d="M44 38 H120" stroke="#3a4346" stroke-width="2" />
+                <rect
+                  x="49"
+                  y="29"
+                  width="66"
+                  height="36"
+                  rx="5"
+                  stroke="#5b6568"
+                  stroke-width="1.2"
+                  stroke-dasharray="3 2.5"
+                />
+                <path d="M62 65 H90" stroke="#c0392b" stroke-width="1.6" stroke-dasharray="3 2.5" />
+                <rect x="104" y="44" width="12" height="9" rx="2" fill="#8b9599" />
+                <path
+                  d="M50 27 C70 25, 90 25, 112 27"
+                  stroke="#fff"
+                  stroke-opacity="0.15"
+                  stroke-width="2"
+                />
+              </svg>
+              <span class="viewfinder"></span>
+              <span class="shutter"></span>
+            </span>
+            <span class="demo-meta">Beograd · Autokomanda</span>
+          </div>
+
+          <!-- AI čvor u koji ulaze podaci -->
+          <div class="hub">
+            <span class="hub-core">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+                <path d="M19 3v4M17 5h4" />
+              </svg>
+            </span>
+            <span class="hub-label">AI poređenje</span>
+          </div>
+
+          <!-- Rezultat koji izlazi iz AI -->
+          <div class="result">
+            <span class="result-count match-count"></span>
+            <span class="result-label">poklapanje</span>
+            <span class="result-bar"><span></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Kako funkcioniše ===================== -->
+  <section class="how" id="kako-funkcionise">
+    <div class="how-head reveal">
+      <span class="pill">KAKO FUNKCIONIŠE</span>
+      <h2>Od prijave do povratka u četiri koraka</h2>
+      <p>
+        Jedni nešto izgube, drugi to pronađu. Mi ih spojimo. Evo šta radi svako od vas, korak po
+        korak.
+      </p>
+      <div class="legend">
+        <span class="lane-tag tag-owner">Ako si izgubio</span>
+        <span class="lane-tag tag-finder">Ako si našao</span>
+      </div>
+    </div>
+
+    <ol class="flow">
+      <!-- 1. Prijava: dve strane, svaka za sebe -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">1</span>
+          <h3>Prijavi</h3>
+          <span class="step-number">01</span>
+        </div>
+
+        <div class="lanes">
+          <article class="lane lane-owner reveal">
+            <span class="lane-tag tag-owner">Ako si izgubio</span>
+            <div class="lane-icon icon-pin" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              <span class="pin-shadow"></span>
+            </div>
+            <h4>Opiši šta si izgubio</h4>
+            <p>
+              Izaberi šta je, kakve je boje i po čemu se razlikuje. Na mapi okvirno obeleži gde si
+              ga poslednji put imao.
+            </p>
+            <p class="lane-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+              Ime sa dokumenta ne napušta tvoj telefon: šaljemo samo njegovu šifru.
+            </p>
+          </article>
+
+          <article class="lane lane-finder reveal">
+            <span class="lane-tag tag-finder">Ako si našao</span>
+            <div class="lane-icon icon-camera" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              <span class="flash"></span>
+            </div>
+            <h4>Fotografiši šta si našao</h4>
+            <p>
+              Slikaj predmet i javi gde si ga našao. Ne moraš da praviš nalog: dobijaš link preko
+              kog pratiš svoj nalaz.
+            </p>
+            <p class="lane-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+              Fotografiju zamagljujemo i iz nje brišemo skrivene podatke o lokaciji.
+            </p>
+          </article>
+        </div>
+
+        <!-- Dve strelice se spajaju u jednu -->
+        <div class="connector connector-merge" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M25 0 C25 22, 50 18, 50 40" />
+            <path class="flow-line finder" d="M75 0 C75 22, 50 18, 50 40" />
+          </svg>
+          <span class="arrow-head" style="left: 50%"></span>
+        </div>
+      </li>
+
+      <!-- 2. AI upoređuje: zajednički korak -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">2</span>
+          <h3>AI upoređuje</h3>
+          <span class="step-number">02</span>
+        </div>
+
+        <article class="joint reveal">
+          <div class="ai-demo" aria-hidden="true">
+            <span class="ai-thumb ai-text">
+              <span></span><span></span><span class="short"></span>
+            </span>
+            <span class="ai-core">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+              </svg>
+            </span>
+            <span class="ai-thumb ai-photo">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="6" width="18" height="13" rx="2" />
+                <path d="M16 12h5v4h-5a2 2 0 0 1 0-4z" />
+              </svg>
+            </span>
+            <span class="scan-line"></span>
+          </div>
+          <div class="joint-text">
+            <h4>Sistem traži par umesto tebe</h4>
+            <p>
+              Svaki nalaz se poredi sa aktivnim oglasima. Najbolje kandidate dodatno proverava
+              veštačka inteligencija, kao što bi to uradio pažljiv čovek.
+            </p>
+            <ul class="criteria">
+              <li>Vrsta i boja</li>
+              <li>Mesto i vreme</li>
+              <li>Opis i posebni znaci</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Jedna strelica se deli na dve -->
+        <div class="connector connector-split" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M50 0 C50 22, 25 18, 25 40" />
+            <path class="flow-line finder" d="M50 0 C50 22, 75 18, 75 40" />
+          </svg>
+          <span class="arrow-head owner" style="left: 25%"></span>
+          <span class="arrow-head finder" style="left: 75%"></span>
+        </div>
+      </li>
+
+      <!-- 3. Potvrda: opet dve strane -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">3</span>
+          <h3>Potvrda</h3>
+          <span class="step-number">03</span>
+        </div>
+
+        <div class="lanes">
+          <article class="lane lane-owner reveal">
+            <span class="lane-tag tag-owner">Ako si izgubio</span>
+            <div class="chat" aria-hidden="true">
+              <span class="bubble bubble-q">Šta piše na privesku?</span>
+              <span class="bubble bubble-a"
+                ><span class="typing">„Mića”, crvenim slovima</span></span
+              >
+            </div>
+            <h4>Potvrdi da je tvoje</h4>
+            <p>
+              Stiže ti obaveštenje o mogućem poklapanju. Odgovoriš na kontrolno pitanje o detalju
+              koji samo vlasnik zna.
+            </p>
+          </article>
+
+          <article class="lane lane-finder reveal">
+            <span class="lane-tag tag-finder">Ako si našao</span>
+            <div class="verify" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle class="verify-ring" cx="12" cy="12" r="9" />
+                <path class="verify-check" d="M7.5 12.5l3 3 6-6.5" />
+              </svg>
+              <span>Odgovor se slaže</span>
+            </div>
+            <h4>Proveri odgovor</h4>
+            <p>
+              Vidiš odgovor vlasnika i uporediš ga sa onim što držiš u ruci. Ti odlučuješ da li je
+              to prava osoba.
+            </p>
+          </article>
+        </div>
+
+        <div class="connector connector-merge" aria-hidden="true">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path class="flow-line owner" d="M25 0 C25 22, 50 18, 50 40" />
+            <path class="flow-line finder" d="M75 0 C75 22, 50 18, 50 40" />
+          </svg>
+          <span class="arrow-head" style="left: 50%"></span>
+        </div>
+      </li>
+
+      <!-- 4. Povratak -->
+      <li class="step">
+        <div class="step-head reveal">
+          <span class="step-badge">4</span>
+          <h3>Povratak</h3>
+          <span class="step-number">04</span>
+        </div>
+
+        <article class="joint joint-final reveal">
+          <div class="handoff" aria-hidden="true">
+            <span class="person person-finder">N</span>
+            <span class="track">
+              <span class="parcel">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="6" width="18" height="13" rx="2" />
+                  <path d="M16 12h5v4h-5a2 2 0 0 1 0-4z" />
+                </svg>
+              </span>
+            </span>
+            <span class="person person-owner">V</span>
+          </div>
+          <div class="joint-text">
+            <h4>Stvar se vraća vlasniku</h4>
+            <p>
+              Dogovorite preuzimanje i stvar je ponovo kod svog vlasnika. Nalazač je upravo nekome
+              spasio dan.
+            </p>
+          </div>
+        </article>
+      </li>
     </ol>
   </section>
 
-  <!-- Dva velika dugmeta -->
-  <div class="actions">
-    <a class="action" routerLink="/login">Izgubio Sam</a>
-    <button class="action" type="button">Nasao Sam</button>
-  </div>
+  <!-- ===================== Poziv na akciju ===================== -->
+  <section class="cta">
+    <a class="cta-card cta-owner reveal" routerLink="/login">
+      <span class="lane-tag tag-owner">Izgubio si nešto?</span>
+      <strong>Napravi oglas za par minuta</strong>
+      <span class="cta-go">
+        Izgubio sam
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </span>
+    </a>
+    <button class="cta-card cta-finder reveal" type="button">
+      <span class="lane-tag tag-finder">Našao si nešto?</span>
+      <strong>Slikaj i prijavi, bez naloga</strong>
+      <span class="cta-go">
+        Našao sam
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </span>
+    </button>
+  </section>
 </main>
+
+<footer class="footer">NasaoSam.rs · izgubljeno i nađeno širom Srbije</footer>
