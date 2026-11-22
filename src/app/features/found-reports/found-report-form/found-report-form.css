@@ -1,0 +1,182 @@
+/* Zajednički stilovi (kartica, polja, dugmad...) su u ../finder-controls.css */
+
+/* ---------- Traka napretka ---------- */
+.progress ol {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.progress button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: left;
+  background: none;
+  border: 0;
+}
+
+.progress button:not(:disabled) {
+  cursor: pointer;
+}
+
+.progress .bar {
+  display: block;
+  height: 4px;
+  margin-bottom: 0.45rem;
+  background: var(--border);
+  border-radius: 999px;
+  transition: background 0.3s var(--ease);
+}
+
+.progress .done .bar {
+  background: var(--teal);
+}
+
+.progress .current .bar {
+  background: var(--finder);
+}
+
+.progress .current .label {
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.progress .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.step-caption {
+  display: none;
+  margin: -0.9rem 0 1.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.step-caption strong {
+  color: var(--teal);
+}
+
+/* Uzak ekran: nazivi ispod traka ne stanu, pa se umesto njih piše jedna linija */
+@media (max-width: 559px) {
+  .progress .label {
+    display: none;
+  }
+
+  .step-caption {
+    display: block;
+  }
+}
+
+/* ---------- Fotografija ---------- */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 2.5rem 1rem;
+  font: inherit;
+  color: var(--teal);
+  text-align: center;
+  background: #f4f8f8;
+  border: 2px dashed #b8c8cc;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.dropzone:hover:not(:disabled) {
+  background: #eaf2f2;
+  border-color: var(--teal);
+}
+
+.dropzone:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.dropzone:disabled {
+  cursor: progress;
+}
+
+.dropzone strong {
+  font-size: 1.05rem;
+}
+
+.dropzone span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.photo {
+  margin: 0;
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+  max-height: 20rem;
+  object-fit: contain;
+  background: #eef1f3;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.photo figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.photo figcaption strong {
+  color: var(--teal);
+  word-break: break-all;
+}
+
+/* ---------- Posle slanja ---------- */
+.next-steps {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1.5rem 0 1.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.next-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.next-steps strong {
+  color: var(--teal);
+}
+
+/* Krug sa brojem, isto kao na početnoj */
+.next-steps .num {
+  display: grid;
+  flex: 0 0 2rem;
+  place-items: center;
+  height: 2rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--bg);
+  border: 2px solid #e0e8e7;
+  border-radius: 50%;
+}

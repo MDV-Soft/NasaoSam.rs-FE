@@ -5,6 +5,7 @@ import { Register } from './features/auth/register/register';
 import { LostReportList } from './features/lost-reports/lost-report-list/lost-report-list';
 import { authGuard } from './core/guards/auth-guard';
 import { guestGuard } from './core/guards/guest-guard';
+import { finderGuard } from './core/guards/finder-guard';
 
 export const routes: Routes = [
   // Prva stranica koja se prikazuje kad se aplikacija pokrene
@@ -12,6 +13,28 @@ export const routes: Routes = [
   // Prijavljen korisnik nema šta da traži na loginu
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'registracija', component: Register, canActivate: [guestGuard] },
+  // Nalazač nema nalog: prijava nalaza je javna. Učitava se tek kad zatreba (u njoj je mapa).
+  {
+    path: 'nasao-sam',
+    loadComponent: () =>
+      import('./features/found-reports/found-report-form/found-report-form').then(
+        (m) => m.FoundReportForm,
+      ),
+  },
+  // Link iz mejla otvara nalazača (privremeni token, bez naloga). Stranica za pregled traži taj token.
+  {
+    path: 'nalaz',
+    loadComponent: () =>
+      import('./features/found-reports/finder-link/finder-link').then((m) => m.FinderLink),
+  },
+  {
+    path: 'nalaz/pregled',
+    loadComponent: () =>
+      import('./features/found-reports/finder-report/finder-report').then(
+        (m) => m.FinderReportPage,
+      ),
+    canActivate: [finderGuard],
+  },
   // Samo za prijavljene
   { path: 'moji-oglasi', component: LostReportList, canActivate: [authGuard] },
   // Forma sa mapom (Leaflet) se učitava tek kad se otvori, da početna stranica ostane laka

@@ -6,11 +6,19 @@
   --bg: #f7f8f6;
   --text-muted: #3f5560;
   --error: #c62828;
+
+  /* Dve strane platforme: vlasnik (zelenkasta) i nalazač (narandžasta) */
+  --owner: #2f8f83;
+  --owner-soft: #e1f2ee;
+  --finder: #c9711f;
+  --finder-soft: #fcefe0;
+  --border: #dfe7e8;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 body {
   margin: 0;
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
   color: var(--teal);
   background: var(--bg);
 }

@@ -1,0 +1,54 @@
+<app-finder-shell>
+  @switch (state()) {
+    @case ('opening') {
+      <section class="intro">
+        <h1>Otvaramo nalaz</h1>
+        <p class="lead">Samo trenutak...</p>
+      </section>
+    }
+
+    @case ('failed') {
+      <section class="intro">
+        <h1>Link ne radi</h1>
+        <p class="lead">{{ message() }}</p>
+      </section>
+
+      <section class="card">
+        @if (canRetry()) {
+          <p class="hint">Proveri internet vezu pa pokušaj ponovo.</p>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" (click)="open()">Pokušaj ponovo</button>
+          </div>
+        } @else {
+          <h2>Šta može da bude razlog</h2>
+          <ul class="reasons">
+            <li>Link važi 24 sata od trenutka kad si prijavio nalaz.</li>
+            <li>Posle potvrde nalaza link više ne radi.</li>
+            <li>Link je nepotpun (npr. nije kopiran do kraja).</li>
+          </ul>
+          <div class="actions">
+            <a class="btn btn-light" routerLink="/">Početna</a>
+            <a class="btn btn-primary" routerLink="/nasao-sam">Prijavi pronađeni predmet</a>
+          </div>
+        }
+      </section>
+    }
+
+    @case ('missing') {
+      <section class="intro">
+        <h1>Otvori link iz mejla</h1>
+        <p class="lead">
+          Ovu stranicu otvara link koji smo ti poslali posle prijave nalaza. Pristup traje dva sata:
+          ako je istekao, a nalaz još nisi potvrdio, otvori link iz mejla ponovo.
+        </p>
+      </section>
+
+      <section class="card">
+        <p class="hint">Još nisi prijavio nalaz?</p>
+        <div class="actions">
+          <a class="btn btn-primary" routerLink="/nasao-sam">Prijavi pronađeni predmet</a>
+        </div>
+      </section>
+    }
+  }
+</app-finder-shell>

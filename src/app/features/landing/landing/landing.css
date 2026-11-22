@@ -1,13 +1,8 @@
 /* Boje dve strane: vlasnik (zelenkasta) i nalazač (narandžasta) */
 :host {
-  --owner: #2f8f83;
-  --owner-soft: #e1f2ee;
+  /* Boje strana (--owner, --finder, --border...) su u styles.css; ovde su samo svetle varijante za linije */
   --owner-line: #8fd3c4;
-  --finder: #c9711f;
-  --finder-soft: #fcefe0;
   --finder-line: #f2b36b;
-  --border: #dfe7e8;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   display: block;
   /* clip, a ne hidden: hidden bi napravio zaseban scroll kontejner i pokvario animacije pri skrolovanju */
   overflow-x: clip;
@@ -133,6 +128,39 @@ svg {
 .nav-link-strong:hover {
   text-decoration: none;
   background: var(--teal-dark);
+}
+
+/* Najuži telefoni (320 px): Manrope je širi od prethodnog fonta, pa meni mora da se zgusne */
+@media (max-width: 380px) {
+  .nav {
+    gap: 0.5rem;
+  }
+
+  .brand {
+    gap: 0.4rem;
+    font-size: 1rem;
+  }
+
+  .brand-mark {
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+
+  .brand-mark svg {
+    width: 0.95rem;
+  }
+
+  .nav-links {
+    gap: 0.6rem;
+  }
+
+  .nav-link {
+    font-size: 0.78rem;
+  }
+
+  .nav-link-strong {
+    padding: 0.4rem 0.7rem;
+  }
 }
 
 /* ===================== Uvod (cela širina) ===================== */
