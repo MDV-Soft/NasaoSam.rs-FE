@@ -1,626 +1,386 @@
-<div class="page">
-  <header class="topbar">
-    <a class="brand" routerLink="/">NasaoSam</a>
-    <a class="home-link" routerLink="/">← Početna</a>
-  </header>
+<app-finder-shell>
+  @if (submitted(); as result) {
+    <!-- ===================== Poslato ===================== -->
+    <section class="card card-done">
+      <h1 #heading tabindex="-1">Proveri mejl</h1>
+      <p class="lead">
+        Poslali smo link na <strong>{{ sentTo() }}</strong>. Otvori ga do
+        {{ result.linkExpiresAt | date: 'dd.MM.yyyy. HH:mm' }} da nastaviš.
+      </p>
 
-  <main class="content">
-    @if (submitted(); as result) {
-      <!-- ===================== Poslato ===================== -->
-      <section class="card card-done">
-        <span class="tag">Nalaz je primljen</span>
-        <h1 #heading tabindex="-1">Proveri mejl</h1>
-        <p class="lead">
-          Poslali smo link na <strong>{{ sentTo() }}</strong>. Otvori ga do
-          {{ result.linkExpiresAt | date: 'dd.MM.yyyy. HH:mm' }} da potvrdiš nalaz.
-        </p>
+      <ol class="next-steps">
+        <li>
+          <span class="num">1</span>
+          <span
+            ><strong>Otvori mejl</strong> koji smo ti poslali (pogledaj i neželjenu poštu).</span
+          >
+        </li>
+        <li>
+          <span class="num">2</span>
+          <span
+            ><strong>Klikni na link</strong> i opiši predmet: vrstu, boju i po čemu se
+            prepoznaje.</span
+          >
+        </li>
+        <li>
+          <span class="num">3</span>
+          <span><strong>Potvrdi nalaz.</strong> Tek tada počinjemo da tražimo vlasnika.</span>
+        </li>
+      </ol>
 
-        <ol class="next-steps">
-          <li>
-            <span class="num">1</span>
-            <span
-              ><strong>Otvori mejl</strong> koji smo ti poslali (pogledaj i neželjenu poštu).</span
-            >
-          </li>
-          <li>
-            <span class="num">2</span>
-            <span><strong>Klikni na link</strong> i proveri podatke o nalazu.</span>
-          </li>
-          <li>
-            <span class="num">3</span>
-            <span><strong>Potvrdi nalaz.</strong> Tek tada počinjemo da tražimo vlasnika.</span>
-          </li>
+      <a class="btn btn-primary" routerLink="/">Nazad na početnu</a>
+    </section>
+  } @else {
+    <section class="intro">
+      <h1>Prijavi pronađeni predmet</h1>
+      <p class="lead">
+        Treba ti oko tri minuta. Nalog ti ne treba: link za potvrdu stiže na tvoj mejl.
+      </p>
+    </section>
+
+    <section class="card">
+      <!-- Traka napretka: prođeni koraci su dugmad za povratak -->
+      <nav class="progress" aria-label="Koraci prijave">
+        <ol>
+          @for (step of steps; track step.id; let i = $index) {
+            <li [class.done]="i < stepIndex()" [class.current]="i === stepIndex()">
+              <button
+                type="button"
+                [disabled]="i >= stepIndex()"
+                [attr.aria-current]="i === stepIndex() ? 'step' : null"
+                (click)="goTo(i)"
+              >
+                <span class="bar"></span>
+                <span class="label"
+                  ><span class="num">{{ i + 1 }}</span> {{ step.label }}</span
+                >
+              </button>
+            </li>
+          }
         </ol>
-
-        <a class="btn btn-primary" routerLink="/">Nazad na početnu</a>
-      </section>
-    } @else {
-      <section class="intro">
-        <span class="tag">Našao sam</span>
-        <h1>Prijavi pronađeni predmet</h1>
-        <p class="lead">
-          Treba ti oko tri minuta. Nalog ti ne treba: link za potvrdu stiže na tvoj mejl.
+        <!-- Uzak ekran: umesto naziva ispod svake trake, jedna linija preko cele širine -->
+        <p class="step-caption">
+          Korak {{ stepIndex() + 1 }} od {{ steps.length }}:
+          <strong>{{ currentStep().label }}</strong>
         </p>
-      </section>
+      </nav>
 
-      <section class="card">
-        <!-- Traka napretka: prođeni koraci su dugmad za povratak -->
-        <nav class="progress" aria-label="Koraci prijave">
-          <ol>
-            @for (step of steps; track step.id; let i = $index) {
-              <li [class.done]="i < stepIndex()" [class.current]="i === stepIndex()">
-                <button
-                  type="button"
-                  [disabled]="i >= stepIndex()"
-                  [attr.aria-current]="i === stepIndex() ? 'step' : null"
-                  (click)="goTo(i)"
-                >
-                  <span class="bar"></span>
-                  <span class="label"
-                    ><span class="num">{{ i + 1 }}</span> {{ step.label }}</span
+      @switch (currentStep().id) {
+        <!-- ===================== 1. Fotografija ===================== -->
+        @case ('photo') {
+          <div class="step-body">
+            <h2 #heading tabindex="-1">Slikaj predmet</h2>
+            <p class="hint">
+              Slikaj ga celog, na svetloj podlozi i uz dobro svetlo. Po fotografiji vlasnik
+              prepoznaje svoju stvar.
+            </p>
+
+            <input
+              #fileInput
+              type="file"
+              hidden
+              accept="image/jpeg,image/png"
+              (change)="onPhotoSelected($event)"
+            />
+
+            @if (photo(); as file) {
+              <figure class="photo">
+                @if (photoUrl(); as url) {
+                  <img [src]="url" alt="Fotografija pronađenog predmeta" />
+                }
+                <figcaption>
+                  <span
+                    ><strong>{{ file.name }}</strong> · {{ formatFileSize(file.size) }}</span
                   >
-                </button>
-              </li>
-            }
-          </ol>
-          <!-- Uzak ekran: umesto naziva ispod svake trake, jedna linija preko cele širine -->
-          <p class="step-caption">
-            Korak {{ stepIndex() + 1 }} od {{ steps.length }}:
-            <strong>{{ currentStep().label }}</strong>
-          </p>
-        </nav>
-
-        @switch (currentStep().id) {
-          <!-- ===================== 1. Fotografija ===================== -->
-          @case ('photo') {
-            <div class="step-body">
-              <h2 #heading tabindex="-1">Slikaj predmet</h2>
-              <p class="hint">
-                Slikaj ga celog, na svetloj podlozi i uz dobro svetlo. Po fotografiji vlasnik
-                prepoznaje svoju stvar.
-              </p>
-
-              <input
-                #fileInput
-                type="file"
-                hidden
-                accept="image/jpeg,image/png"
-                (change)="onPhotoSelected($event)"
-              />
-
-              @if (photo(); as file) {
-                <figure class="photo">
-                  @if (photoUrl(); as url) {
-                    <img [src]="url" alt="Fotografija pronađenog predmeta" />
-                  }
-                  <figcaption>
-                    <span
-                      ><strong>{{ file.name }}</strong> · {{ formatFileSize(file.size) }}</span
-                    >
-                    <button
-                      type="button"
-                      class="btn btn-light btn-small"
-                      [disabled]="photoBusy()"
-                      (click)="fileInput.click()"
-                    >
-                      Promeni fotografiju
-                    </button>
-                  </figcaption>
-                </figure>
-              } @else {
-                <button
-                  type="button"
-                  class="dropzone"
-                  [disabled]="photoBusy()"
-                  (click)="fileInput.click()"
-                >
-                  <strong>
-                    @if (photoBusy()) {
-                      Obrađujem fotografiju...
-                    } @else {
-                      Izaberi ili slikaj fotografiju
-                    }
-                  </strong>
-                  <span>JPEG ili PNG, do {{ maxPhotoMegabytes }} MB</span>
-                </button>
-              }
-
-              @if (photoBusy() && photo() !== null) {
-                <p class="hint">Obrađujem fotografiju...</p>
-              }
-              @if (photoError() !== '') {
-                <p class="field-error" role="alert">{{ photoError() }}</p>
-              }
-
-              <p class="notice">
-                Vlasnik će videti samo zamućenu verziju fotografije, dok ne dokaže da je predmet
-                njegov. Lokaciju telefona brišemo sa slike.
-              </p>
-
-              <div class="actions">
-                <button type="button" class="btn btn-primary" (click)="next()">Dalje</button>
-              </div>
-            </div>
-          }
-
-          <!-- ===================== 2. Mesto i vreme ===================== -->
-          @case ('place') {
-            <form class="step-body" [formGroup]="placeForm" (ngSubmit)="next()" novalidate>
-              <h2 #heading tabindex="-1">Gde i kada si ga našao?</h2>
-              <p class="hint">Tačno mesto i vreme pomažu da se vlasnik i nalaz pronađu.</p>
-
-              @let foundAt = placeForm.controls.foundAt;
-              <div class="field">
-                <label for="foundAt">Kada si ga našao?</label>
-                <input
-                  id="foundAt"
-                  type="datetime-local"
-                  formControlName="foundAt"
-                  [min]="oldestLocal"
-                  [max]="nowLocal"
-                />
-                @if (foundAt.touched && foundAt.invalid) {
-                  <p class="field-error">
-                    @if (foundAt.errors?.['required']) {
-                      Unesi kada si ga našao.
-                    } @else if (foundAt.errors?.['foundInFuture']) {
-                      Vreme nalaska ne može biti u budućnosti.
-                    } @else {
-                      Predmet ne može biti pronađen pre više od 30 dana.
-                    }
-                  </p>
-                }
-              </div>
-
-              @let city = placeForm.controls.city;
-              <div class="field">
-                <label for="city">Grad</label>
-                <input
-                  id="city"
-                  type="text"
-                  formControlName="city"
-                  autocomplete="address-level2"
-                  (blur)="picker.centerOnCity(city.value)"
-                />
-                @if (city.touched && city.invalid) {
-                  <p class="field-error">
-                    @if (city.errors?.['required']) {
-                      Unesi grad.
-                    } @else {
-                      Grad može imati najviše 100 znakova.
-                    }
-                  </p>
-                }
-              </div>
-
-              @let latitude = placeForm.controls.latitude;
-              <div class="field">
-                <p class="label">Mesto na mapi</p>
-                <p class="hint">
-                  Klikni tamo gde si ga našao. Ako si još na tom mestu, izaberi „Moja trenutna
-                  lokacija”. Pin možeš da prevučeš.
-                </p>
-                <app-location-picker
-                  #picker
-                  [location]="mapLocation()"
-                  [showRadius]="false"
-                  prompt="Klikni na mapu tamo gde si našao predmet"
-                  (locationChange)="onLocationChange($event)"
-                />
-                @if (latitude.touched && latitude.invalid) {
-                  <p class="field-error">Obeleži mesto na mapi.</p>
-                }
-              </div>
-
-              @let place = placeForm.controls.placeDescription;
-              <div class="field">
-                <label for="placeDescription">
-                  Opis mesta <span class="optional">nije obavezno</span>
-                </label>
-                <input
-                  id="placeDescription"
-                  type="text"
-                  formControlName="placeDescription"
-                  placeholder="npr. na klupi ispred pošte"
-                />
-                @if (place.touched && place.invalid) {
-                  <p class="field-error">Opis mesta može imati najviše 255 znakova.</p>
-                }
-              </div>
-
-              <div class="actions">
-                <button type="button" class="btn btn-light" (click)="back()">Nazad</button>
-                <button type="submit" class="btn btn-primary">Dalje</button>
-              </div>
-            </form>
-          }
-
-          <!-- ===================== 3. Predmet ===================== -->
-          @case ('items') {
-            <form class="step-body" [formGroup]="itemsForm" (ngSubmit)="next()" novalidate>
-              <h2 #heading tabindex="-1">Šta si našao?</h2>
-              <p class="hint">
-                Dodaj svaki predmet koji si našao. Što više detalja uneseš (boja, marka, posebni
-                znaci), to lakše vlasnik prepoznaje svoju stvar.
-              </p>
-
-              @if (options(); as opts) {
-                <div formArrayName="items">
-                  @for (item of itemGroups; track item; let i = $index) {
-                    @let category = item.controls.category.value;
-                    <div class="item-card" [formGroupName]="i">
-                      <div class="item-header">
-                        <h3>Predmet {{ i + 1 }}</h3>
-                        @if (itemGroups.length > 1) {
-                          <button type="button" class="link-button" (click)="removeItem(i)">
-                            Ukloni
-                          </button>
-                        }
-                      </div>
-
-                      <div class="field">
-                        <label [attr.for]="'category-' + i">Vrsta predmeta</label>
-                        <select [id]="'category-' + i" formControlName="category">
-                          <option value="">Izaberi vrstu</option>
-                          @for (option of opts.categories; track option.value) {
-                            <option [value]="option.value">{{ option.label }}</option>
-                          }
-                        </select>
-                        @if (
-                          item.controls.category.touched &&
-                          item.controls.category.errors?.['required']
-                        ) {
-                          <p class="field-error">Izaberi vrstu predmeta.</p>
-                        }
-                      </div>
-
-                      @if (category === 'OTHER') {
-                        <div class="field">
-                          <label [attr.for]="'customCategory-' + i">Šta je predmet?</label>
-                          <input
-                            [id]="'customCategory-' + i"
-                            type="text"
-                            formControlName="customCategory"
-                            placeholder="npr. kišobran"
-                          />
-                          @if (item.controls.customCategory.touched) {
-                            @if (item.errors?.['customCategoryRequired']) {
-                              <p class="field-error">Upiši šta je predmet.</p>
-                            } @else if (item.controls.customCategory.errors?.['maxlength']) {
-                              <p class="field-error">Naziv može imati najviše 50 znakova.</p>
-                            }
-                          }
-                        </div>
-                      }
-
-                      @if (category === 'DOCUMENT') {
-                        @let documentType = item.controls.documentType.value;
-                        <div class="field">
-                          <label [attr.for]="'documentType-' + i">Vrsta dokumenta</label>
-                          <select [id]="'documentType-' + i" formControlName="documentType">
-                            <option value="">Izaberi vrstu dokumenta</option>
-                            @for (option of opts.documentTypes; track option.value) {
-                              <option [value]="option.value">{{ option.label }}</option>
-                            }
-                          </select>
-                          @if (
-                            item.controls.documentType.touched &&
-                            item.errors?.['documentTypeRequired']
-                          ) {
-                            <p class="field-error">Izaberi vrstu dokumenta.</p>
-                          }
-                        </div>
-
-                        <p class="hint">
-                          Ime sa dokumenta ne napušta tvoj uređaj: u browseru se pretvara u šifru i
-                          samo ona se šalje. Po njoj prepoznajemo vlasnika dokumenta.
-                        </p>
-
-                        <div class="field-row">
-                          <div class="field">
-                            <label [attr.for]="'lastName-' + i">Prezime</label>
-                            <input
-                              [id]="'lastName-' + i"
-                              type="text"
-                              formControlName="lastName"
-                              autocomplete="off"
-                            />
-                            @if (
-                              item.controls.lastName.touched && item.errors?.['lastNameRequired']
-                            ) {
-                              <p class="field-error">Unesi prezime.</p>
-                            }
-                          </div>
-                          <div class="field">
-                            <label [attr.for]="'firstName-' + i">Ime</label>
-                            <input
-                              [id]="'firstName-' + i"
-                              type="text"
-                              formControlName="firstName"
-                              autocomplete="off"
-                            />
-                            @if (
-                              item.controls.firstName.touched && item.errors?.['firstNameRequired']
-                            ) {
-                              <p class="field-error">Unesi ime.</p>
-                            }
-                          </div>
-                        </div>
-
-                        @if (documentType !== 'BANK_CARD') {
-                          <div class="field">
-                            <label [attr.for]="'dateOfBirth-' + i">
-                              Datum rođenja <span class="optional">nije obavezno</span>
-                            </label>
-                            <input
-                              [id]="'dateOfBirth-' + i"
-                              type="date"
-                              formControlName="dateOfBirth"
-                              [max]="today"
-                            />
-                          </div>
-                        }
-                      } @else if (category !== '') {
-                        <div class="field-row">
-                          <div class="field">
-                            <label [attr.for]="'color-' + i">
-                              Boja <span class="optional">nije obavezno</span>
-                            </label>
-                            <select [id]="'color-' + i" formControlName="color">
-                              <option value="">Nije bitno / ne znam</option>
-                              @for (option of opts.colors; track option.value) {
-                                <option [value]="option.value">{{ option.label }}</option>
-                              }
-                            </select>
-                          </div>
-                          <div class="field">
-                            <label [attr.for]="'brand-' + i">
-                              Marka <span class="optional">nije obavezno</span>
-                            </label>
-                            <input [id]="'brand-' + i" type="text" formControlName="brand" />
-                            @if (item.controls.brand.errors?.['maxlength']) {
-                              <p class="field-error">Marka može imati najviše 100 znakova.</p>
-                            }
-                          </div>
-                        </div>
-
-                        <div class="field">
-                          <label [attr.for]="'material-' + i">
-                            Materijal <span class="optional">nije obavezno</span>
-                          </label>
-                          <input [id]="'material-' + i" type="text" formControlName="material" />
-                          @if (item.controls.material.errors?.['maxlength']) {
-                            <p class="field-error">Materijal može imati najviše 50 znakova.</p>
-                          }
-                        </div>
-
-                        <div class="field">
-                          <label [attr.for]="'description-' + i">
-                            Opis <span class="optional">nije obavezno</span>
-                          </label>
-                          <textarea
-                            [id]="'description-' + i"
-                            rows="3"
-                            formControlName="description"
-                            placeholder="Kako izgleda, da li je oštećen, šta je unutra..."
-                          ></textarea>
-                          @if (item.controls.description.errors?.['maxlength']) {
-                            <p class="field-error">Opis može imati najviše 2000 znakova.</p>
-                          }
-                        </div>
-
-                        <div class="field">
-                          <label [attr.for]="'distinctiveMarks-' + i">
-                            Posebni znaci <span class="optional">nije obavezno</span>
-                          </label>
-                          <input
-                            [id]="'distinctiveMarks-' + i"
-                            type="text"
-                            formControlName="distinctiveMarks"
-                            placeholder="npr. nalepnica, ogrebotina, privezak"
-                          />
-                          @if (item.controls.distinctiveMarks.errors?.['maxlength']) {
-                            <p class="field-error">Posebni znaci mogu imati najviše 500 znakova.</p>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-
-                <button
-                  type="button"
-                  class="btn btn-light btn-wide"
-                  [disabled]="itemGroups.length >= maxItems"
-                  (click)="addItem()"
-                >
-                  + Dodaj još jedan predmet
-                </button>
-              } @else if (optionsFailed()) {
-                <p class="form-error">
-                  Liste za izbor nisu učitane. Proveri vezu i pokušaj ponovo.
-                </p>
-                <button type="button" class="btn btn-light" (click)="loadOptions()">
-                  Pokušaj ponovo
-                </button>
-              } @else {
-                <p class="hint">Učitavanje lista...</p>
-              }
-
-              <div class="actions">
-                <button type="button" class="btn btn-light" (click)="back()">Nazad</button>
-                <button type="submit" class="btn btn-primary" [disabled]="options() === null">
-                  Dalje
-                </button>
-              </div>
-            </form>
-          }
-
-          <!-- ===================== 4. Predaja i kontakt ===================== -->
-          @case ('handover') {
-            <form class="step-body" [formGroup]="handoverForm" (ngSubmit)="onSubmit()" novalidate>
-              <h2 #heading tabindex="-1">Predaja i kontakt</h2>
-
-              @let itemLocation = handoverForm.controls.itemLocation;
-              <fieldset class="choices">
-                <legend>Gde je predmet sada?</legend>
-                <div class="choice-grid">
-                  @for (option of itemLocations; track option.value) {
-                    <label class="choice">
-                      <input type="radio" formControlName="itemLocation" [value]="option.value" />
-                      <span class="choice-title">{{ option.label }}</span>
-                      <span class="choice-hint">{{ option.hint }}</span>
-                    </label>
-                  }
-                </div>
-                @if (itemLocation.touched && itemLocation.invalid) {
-                  <p class="field-error">Izaberi gde se predmet nalazi.</p>
-                }
-              </fieldset>
-
-              @if (itemLocation.value !== '' && itemLocation.value !== 'WITH_FINDER') {
-                @let handoverInfo = handoverForm.controls.handoverInfo;
-                <div class="field">
-                  <label for="handoverInfo">Gde vlasnik može da ga preuzme?</label>
-                  <input
-                    id="handoverInfo"
-                    type="text"
-                    formControlName="handoverInfo"
-                    placeholder="adresa, šalter i radno vreme"
-                  />
-                  @if (handoverInfo.touched && handoverForm.errors?.['handoverRequired']) {
-                    <p class="field-error">Upiši gde vlasnik može da preuzme predmet.</p>
-                  } @else if (handoverInfo.errors?.['maxlength']) {
-                    <p class="field-error">Opis može imati najviše 255 znakova.</p>
-                  }
-                </div>
-              }
-
-              <h3 class="section">Kontrolno pitanje</h3>
-              <p class="hint">
-                Da bi dokazao da je predmet njegov, vlasnik mora da odgovori na pitanje koje samo on
-                zna. Izaberi nešto što se ne vidi na fotografiji, npr. šta piše na privesku, koja je
-                slika na pozadini telefona ili šta je u prednjem džepu torbe.
-              </p>
-
-              @let question = handoverForm.controls.controlQuestion;
-              <div class="field">
-                <label for="controlQuestion">Pitanje</label>
-                <input
-                  id="controlQuestion"
-                  type="text"
-                  formControlName="controlQuestion"
-                  placeholder="npr. Šta piše na privesku?"
-                />
-                @if (question.touched && question.invalid) {
-                  <p class="field-error">
-                    @if (question.errors?.['required']) {
-                      Upiši kontrolno pitanje.
-                    } @else {
-                      Pitanje može imati najviše 255 znakova.
-                    }
-                  </p>
-                }
-              </div>
-
-              @let answer = handoverForm.controls.controlAnswer;
-              <div class="field">
-                <label for="controlAnswer">Tačan odgovor</label>
-                <input id="controlAnswer" type="text" formControlName="controlAnswer" />
-                <p class="hint">Odgovor čuvamo šifrovano.</p>
-                @if (answer.touched && answer.invalid) {
-                  <p class="field-error">
-                    @if (answer.errors?.['required']) {
-                      Upiši tačan odgovor.
-                    } @else {
-                      Odgovor može imati najviše 500 znakova.
-                    }
-                  </p>
-                }
-              </div>
-
-              <h3 class="section">Tvoj kontakt</h3>
-
-              @let email = handoverForm.controls.finderEmail;
-              <div class="field">
-                <label for="finderEmail">Mejl</label>
-                <input
-                  id="finderEmail"
-                  type="email"
-                  formControlName="finderEmail"
-                  autocomplete="email"
-                />
-                <p class="hint">Na ovaj mejl šaljemo link za potvrdu nalaza.</p>
-                @if (email.touched && email.invalid) {
-                  <p class="field-error">
-                    @if (email.errors?.['required']) {
-                      Unesi mejl.
-                    } @else if (email.errors?.['maxlength']) {
-                      Mejl može imati najviše 255 znakova.
-                    } @else {
-                      Unesi ispravnu mejl adresu.
-                    }
-                  </p>
-                }
-              </div>
-
-              @let phone = handoverForm.controls.finderPhone;
-              <div class="field">
-                <label for="finderPhone">
-                  Telefon <span class="optional">nije obavezno</span>
-                </label>
-                <input
-                  id="finderPhone"
-                  type="tel"
-                  formControlName="finderPhone"
-                  autocomplete="tel"
-                  placeholder="064 123 4567"
-                />
-                @if (phone.touched && phone.invalid) {
-                  <p class="field-error">
-                    @if (phone.errors?.['maxlength']) {
-                      Broj telefona može imati najviše 30 znakova.
-                    } @else {
-                      Unesi ispravan srpski mobilni broj, npr. 064 123 4567.
-                    }
-                  </p>
-                }
-              </div>
-
-              <p class="notice">
-                Tvoj kontakt se ne prikazuje javno. Vlasnik ga dobija tek kad se potvrdi da je
-                predmet njegov.
-              </p>
-
-              @if (submitErrors().length > 0) {
-                <ul class="form-error" role="alert">
-                  @for (message of submitErrors(); track $index) {
-                    <li>{{ message }}</li>
-                  }
-                </ul>
-              }
-
-              <div class="actions">
-                <button
-                  type="button"
-                  class="btn btn-light"
-                  [disabled]="isSaving()"
-                  (click)="back()"
-                >
-                  Nazad
-                </button>
-                <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
-                  @if (isSaving()) {
-                    Slanje...
+                  <button
+                    type="button"
+                    class="btn btn-light btn-small"
+                    [disabled]="photoBusy()"
+                    (click)="fileInput.click()"
+                  >
+                    Promeni fotografiju
+                  </button>
+                </figcaption>
+              </figure>
+            } @else {
+              <button
+                type="button"
+                class="dropzone"
+                [disabled]="photoBusy()"
+                (click)="fileInput.click()"
+              >
+                <strong>
+                  @if (photoBusy()) {
+                    Obrađujem fotografiju...
                   } @else {
-                    Pošalji nalaz
+                    Izaberi ili slikaj fotografiju
                   }
-                </button>
-              </div>
-            </form>
-          }
+                </strong>
+                <span>JPEG ili PNG, do {{ maxPhotoMegabytes }} MB</span>
+              </button>
+            }
+
+            @if (photoBusy() && photo() !== null) {
+              <p class="hint">Obrađujem fotografiju...</p>
+            }
+            @if (photoError() !== '') {
+              <p class="field-error" role="alert">{{ photoError() }}</p>
+            }
+
+            <p class="notice">
+              Vlasnik će videti samo zamućenu verziju fotografije, dok ne dokaže da je predmet
+              njegov. Lokaciju telefona brišemo sa slike.
+            </p>
+
+            <div class="actions">
+              <button type="button" class="btn btn-primary" (click)="next()">Dalje</button>
+            </div>
+          </div>
         }
-      </section>
-    }
-  </main>
-</div>
+
+        <!-- ===================== 2. Mesto i vreme ===================== -->
+        @case ('place') {
+          <form class="step-body" [formGroup]="placeForm" (ngSubmit)="next()" novalidate>
+            <h2 #heading tabindex="-1">Gde i kada si ga našao?</h2>
+            <p class="hint">Tačno mesto i vreme pomažu da se vlasnik i nalaz pronađu.</p>
+
+            @let foundAt = placeForm.controls.foundAt;
+            <div class="field">
+              <p class="label">Kada si ga našao?</p>
+              <app-moment-picker
+                [value]="foundAt.value"
+                [maxDaysBack]="maxDaysBack"
+                (valueChange)="onMomentChange($event)"
+              />
+              @if (foundAt.invalid) {
+                <p class="field-error">
+                  @if (foundAt.errors?.['foundInFuture']) {
+                    Vreme nalaska ne može biti u budućnosti.
+                  } @else {
+                    Predmet ne može biti pronađen pre više od 30 dana.
+                  }
+                </p>
+              }
+            </div>
+
+            @let city = placeForm.controls.city;
+            <div class="field">
+              <label for="city">Grad</label>
+              <input
+                id="city"
+                type="text"
+                formControlName="city"
+                autocomplete="address-level2"
+                (blur)="picker.centerOnCity(city.value)"
+              />
+              @if (city.touched && city.invalid) {
+                <p class="field-error">
+                  @if (city.errors?.['required']) {
+                    Unesi grad.
+                  } @else {
+                    Grad može imati najviše 100 znakova.
+                  }
+                </p>
+              }
+            </div>
+
+            @let latitude = placeForm.controls.latitude;
+            <div class="field">
+              <p class="label">Mesto na mapi</p>
+              <p class="hint">Što preciznije označite na mapi gde ste našli predmet.</p>
+              <app-location-picker
+                #picker
+                [location]="mapLocation()"
+                [showRadius]="false"
+                [showLocateTools]="false"
+                prompt="Kliknite na mapu da označite mesto"
+                (locationChange)="onLocationChange($event)"
+              />
+              @if (latitude.touched && latitude.invalid) {
+                <p class="field-error">Obeleži mesto na mapi.</p>
+              }
+            </div>
+
+            @let place = placeForm.controls.placeDescription;
+            <div class="field">
+              <label for="placeDescription">
+                Opis mesta <span class="optional">nije obavezno</span>
+              </label>
+              <input
+                id="placeDescription"
+                type="text"
+                formControlName="placeDescription"
+                placeholder="npr. na klupi ispred pošte"
+              />
+              @if (place.touched && place.invalid) {
+                <p class="field-error">Opis mesta može imati najviše 255 znakova.</p>
+              }
+            </div>
+
+            <div class="actions">
+              <button type="button" class="btn btn-light" (click)="back()">Nazad</button>
+              <button type="submit" class="btn btn-primary">Dalje</button>
+            </div>
+          </form>
+        }
+
+        <!-- ===================== 3. Predaja i kontakt ===================== -->
+        @case ('handover') {
+          <form class="step-body" [formGroup]="handoverForm" (ngSubmit)="onSubmit()" novalidate>
+            <h2 #heading tabindex="-1">Predaja i kontakt</h2>
+
+            @let itemLocation = handoverForm.controls.itemLocation;
+            <fieldset class="choices">
+              <legend>Gde je predmet sada?</legend>
+              <div class="choice-grid">
+                @for (option of itemLocations; track option.value) {
+                  <label class="choice">
+                    <input type="radio" formControlName="itemLocation" [value]="option.value" />
+                    <span class="choice-title">{{ option.label }}</span>
+                    <span class="choice-hint">{{ option.hint }}</span>
+                  </label>
+                }
+              </div>
+              @if (itemLocation.touched && itemLocation.invalid) {
+                <p class="field-error">Izaberi gde se predmet nalazi.</p>
+              }
+            </fieldset>
+
+            @if (itemLocation.value !== '' && itemLocation.value !== 'WITH_FINDER') {
+              @let handoverInfo = handoverForm.controls.handoverInfo;
+              <div class="field">
+                <label for="handoverInfo">Gde vlasnik može da ga preuzme?</label>
+                <input
+                  id="handoverInfo"
+                  type="text"
+                  formControlName="handoverInfo"
+                  placeholder="adresa, šalter i radno vreme"
+                />
+                @if (handoverInfo.touched && handoverForm.errors?.['handoverRequired']) {
+                  <p class="field-error">Upiši gde vlasnik može da preuzme predmet.</p>
+                } @else if (handoverInfo.errors?.['maxlength']) {
+                  <p class="field-error">Opis može imati najviše 255 znakova.</p>
+                }
+              </div>
+            }
+
+            <h3 class="section">Kontrolno pitanje</h3>
+            <p class="hint">
+              Da bi dokazao da je predmet njegov, vlasnik mora da odgovori na pitanje koje samo on
+              zna. Izaberi nešto što se ne vidi na fotografiji, npr. šta piše na privesku, koja je
+              slika na pozadini telefona ili šta je u prednjem džepu torbe.
+            </p>
+
+            @let question = handoverForm.controls.controlQuestion;
+            <div class="field">
+              <label for="controlQuestion">Pitanje</label>
+              <input
+                id="controlQuestion"
+                type="text"
+                formControlName="controlQuestion"
+                placeholder="npr. Šta piše na privesku?"
+              />
+              @if (question.touched && question.invalid) {
+                <p class="field-error">
+                  @if (question.errors?.['required']) {
+                    Upiši kontrolno pitanje.
+                  } @else {
+                    Pitanje može imati najviše 255 znakova.
+                  }
+                </p>
+              }
+            </div>
+
+            @let answer = handoverForm.controls.controlAnswer;
+            <div class="field">
+              <label for="controlAnswer">Tačan odgovor</label>
+              <input id="controlAnswer" type="text" formControlName="controlAnswer" />
+              <p class="hint">Odgovor čuvamo šifrovano.</p>
+              @if (answer.touched && answer.invalid) {
+                <p class="field-error">
+                  @if (answer.errors?.['required']) {
+                    Upiši tačan odgovor.
+                  } @else {
+                    Odgovor može imati najviše 500 znakova.
+                  }
+                </p>
+              }
+            </div>
+
+            <h3 class="section">Tvoj kontakt</h3>
+
+            @let email = handoverForm.controls.finderEmail;
+            <div class="field">
+              <label for="finderEmail">Mejl</label>
+              <input
+                id="finderEmail"
+                type="email"
+                formControlName="finderEmail"
+                autocomplete="email"
+              />
+              <p class="hint">Na ovaj mejl šaljemo link za potvrdu nalaza.</p>
+              @if (email.touched && email.invalid) {
+                <p class="field-error">
+                  @if (email.errors?.['required']) {
+                    Unesi mejl.
+                  } @else if (email.errors?.['maxlength']) {
+                    Mejl može imati najviše 255 znakova.
+                  } @else {
+                    Unesi ispravnu mejl adresu.
+                  }
+                </p>
+              }
+            </div>
+
+            @let phone = handoverForm.controls.finderPhone;
+            <div class="field">
+              <label for="finderPhone"> Telefon <span class="optional">nije obavezno</span> </label>
+              <input
+                id="finderPhone"
+                type="tel"
+                formControlName="finderPhone"
+                autocomplete="tel"
+                placeholder="064 123 4567"
+              />
+              @if (phone.touched && phone.invalid) {
+                <p class="field-error">
+                  @if (phone.errors?.['maxlength']) {
+                    Broj telefona može imati najviše 30 znakova.
+                  } @else {
+                    Unesi ispravan srpski mobilni broj, npr. 064 123 4567.
+                  }
+                </p>
+              }
+            </div>
+
+            <p class="notice">
+              Tvoj kontakt se ne prikazuje javno. Vlasnik ga dobija tek kad se potvrdi da je predmet
+              njegov.
+            </p>
+
+            @if (submitErrors().length > 0) {
+              <ul class="form-error" role="alert">
+                @for (message of submitErrors(); track $index) {
+                  <li>{{ message }}</li>
+                }
+              </ul>
+            }
+
+            <div class="actions">
+              <button type="button" class="btn btn-light" [disabled]="isSaving()" (click)="back()">
+                Nazad
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  Slanje...
+                } @else {
+                  Pošalji nalaz
+                }
+              </button>
+            </div>
+          </form>
+        }
+      }
+    </section>
+  }
+</app-finder-shell>

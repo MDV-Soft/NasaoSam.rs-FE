@@ -89,6 +89,32 @@ describe('LocationPicker', () => {
     });
   });
 
+  describe('without the locate tools (finder)', () => {
+    const toolTexts = () =>
+      Array.from(page().querySelectorAll('.lp-tool')).map((b) => b.textContent?.trim());
+
+    it('shows both tools by default', () => {
+      expect(toolTexts()).toEqual(['Moja trenutna lokacija', 'Pin na sredinu mape']);
+    });
+
+    it('hides "my location" and "pin at the center", and shows no toolbar before a pin exists', async () => {
+      fixture.componentRef.setInput('showLocateTools', false);
+      await fixture.whenStable();
+
+      expect(page().querySelector('.lp-toolbar')).toBeNull();
+      expect(page().textContent).not.toContain('Moja trenutna lokacija');
+      expect(page().textContent).not.toContain('Pin na sredinu mape');
+    });
+
+    it('still offers "remove pin" once a pin is placed', async () => {
+      fixture.componentRef.setInput('showLocateTools', false);
+      component.placePin(44.8, 20.4);
+      await fixture.whenStable();
+
+      expect(toolTexts()).toEqual(['Ukloni pin']);
+    });
+  });
+
   it('removes the pin', async () => {
     component.placePin(44.8, 20.4);
     component.clear();

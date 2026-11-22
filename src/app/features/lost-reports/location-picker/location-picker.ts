@@ -67,6 +67,9 @@ export class LocationPicker {
   // Bez radijusa nema ni kruga na mapi, a lokacija se javlja sa radiusMeters = 0.
   showRadius = input<boolean>(true);
 
+  // Dugmad "Moja trenutna lokacija" i "Pin na sredinu mape". "Ukloni pin" ostaje uvek kad pin postoji.
+  showLocateTools = input<boolean>(true);
+
   // Natpis preko mape dok pin još nije postavljen
   prompt = input<string>('Klikni na mapu tamo gde misliš da si izgubio predmet');
 

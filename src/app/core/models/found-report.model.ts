@@ -1,4 +1,4 @@
-import { LostReportItemRequest } from './lost-report.model';
+import { DocumentType, ItemCategory, ItemColor, LostReportItemRequest } from './lost-report.model';
 
 // Gde se predmet nalazi. Vrednosti moraju biti identične imenima konstanti u ItemLocation enumu na backendu.
 export type ItemLocation = 'WITH_FINDER' | 'AT_INSTITUTION' | 'AT_POLICE';
@@ -32,4 +32,54 @@ export interface FoundReportSubmitted {
   message: string;
   // Do kada važi link iz mejla (ISO, UTC)
   linkExpiresAt: string;
+}
+
+// ---------- Nalazačeva strana (posle otvaranja linka iz mejla) ----------
+
+// Životni ciklus nalaza. Samo ACTIVE nalazi učestvuju u spajanju.
+export type FoundReportStatus =
+  'PENDING_EMAIL' | 'PENDING_REVIEW' | 'ACTIVE' | 'RETURNED' | 'EXPIRED' | 'WITHDRAWN';
+
+// Odgovor na POST /finder/access: privremeni token nalazača (uloga FINDER, vezan za jedan nalaz)
+export interface FinderAccess {
+  accessToken: string;
+  // Do kada token važi (ISO, UTC); backend ga daje na 120 minuta
+  expiresAt: string;
+}
+
+// Predmet onako kako ga nalazač vidi. Backend ne vraća heševe imena ni da li postoje,
+// pa se ime sa dokumenta pri svakoj izmeni mora ponovo upisati.
+export interface FinderReportItem {
+  category: ItemCategory;
+  customCategory: string | null;
+  documentType: DocumentType | null;
+  color: ItemColor | null;
+  brand: string | null;
+  material: string | null;
+  description: string | null;
+  distinctiveMarks: string | null;
+}
+
+// Odgovor na GET /finder/report i na sve izmene
+export interface FinderReport {
+  status: FoundReportStatus;
+  foundAt: string;
+  city: string;
+  placeDescription: string | null;
+  latitude: number;
+  longitude: number;
+  itemLocation: ItemLocation;
+  handoverInfo: string | null;
+  controlQuestion: string;
+  hasPhoto: boolean;
+  activatedAt: string | null;
+  expiresAt: string;
+  items: FinderReportItem[];
+}
+
+// PUT /finder/report/item-location
+export interface UpdateItemLocationRequest {
+  itemLocation: ItemLocation;
+  // Obavezno kad predmet nije kod nalazača, a kad jeste, ne šalje se
+  handoverInfo?: string;
 }

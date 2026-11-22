@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+/* Mirna traka iste boje kao uvod na početnoj; kartica se preko nje spušta */
+.page {
+  min-height: 100vh;
+  background: linear-gradient(#e9f1f0 0, #e9f1f0 17rem, var(--bg) 17rem);
+}
+
+.topbar,
+.content {
+  box-sizing: border-box;
+  width: min(40rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.25rem;
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.home-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.home-link:hover {
+  text-decoration: underline;
+}
+
+.content {
+  padding-bottom: 3rem;
+}

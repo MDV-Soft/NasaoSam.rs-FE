@@ -31,7 +31,10 @@ export function findLabel(options: OptionItem[] | undefined, value: string | nul
  *  - dokument → "Dokument: Lična karta"
  *  - ostalo   → vrsta ("Novčanik")
  */
-export function itemTitle(item: LostReportItem, options: ItemOptions | null): string {
+export function itemTitle(
+  item: Pick<LostReportItem, 'category' | 'customCategory' | 'documentType'>,
+  options: ItemOptions | null,
+): string {
   const categoryLabel = findLabel(options?.categories, item.category);
 
   if (item.category === 'OTHER' && item.customCategory) {

@@ -1,0 +1,184 @@
+<div [formGroup]="form">
+  <div formArrayName="items">
+    @for (item of itemGroups; track item; let i = $index) {
+      @let category = item.controls.category.value;
+      <div class="item-card" [formGroupName]="i">
+        <div class="item-header">
+          <h3>Predmet {{ i + 1 }}</h3>
+          @if (itemGroups.length > 1) {
+            <button type="button" class="link-button" (click)="removeItem(i)">Ukloni</button>
+          }
+        </div>
+
+        <div class="field">
+          <label [attr.for]="'category-' + i">Vrsta predmeta</label>
+          <select [id]="'category-' + i" formControlName="category">
+            <option value="">Izaberi vrstu</option>
+            @for (option of options().categories; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+          @if (item.controls.category.touched && item.controls.category.errors?.['required']) {
+            <p class="field-error">Izaberi vrstu predmeta.</p>
+          }
+        </div>
+
+        @if (category === 'OTHER') {
+          <div class="field">
+            <label [attr.for]="'customCategory-' + i">Šta je predmet?</label>
+            <input
+              [id]="'customCategory-' + i"
+              type="text"
+              formControlName="customCategory"
+              placeholder="npr. kišobran"
+            />
+            @if (item.controls.customCategory.touched) {
+              @if (item.errors?.['customCategoryRequired']) {
+                <p class="field-error">Upiši šta je predmet.</p>
+              } @else if (item.controls.customCategory.errors?.['maxlength']) {
+                <p class="field-error">Naziv može imati najviše 50 znakova.</p>
+              }
+            }
+          </div>
+        }
+
+        @if (category === 'DOCUMENT') {
+          @let documentType = item.controls.documentType.value;
+          <div class="field">
+            <label [attr.for]="'documentType-' + i">Vrsta dokumenta</label>
+            <select [id]="'documentType-' + i" formControlName="documentType">
+              <option value="">Izaberi vrstu dokumenta</option>
+              @for (option of options().documentTypes; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            @if (item.controls.documentType.touched && item.errors?.['documentTypeRequired']) {
+              <p class="field-error">Izaberi vrstu dokumenta.</p>
+            }
+          </div>
+
+          <p class="hint">
+            Ime sa dokumenta ne napušta tvoj uređaj: u browseru se pretvara u šifru i samo ona se
+            šalje. Po njoj prepoznajemo vlasnika dokumenta.
+            @if (isRestoredDocument(item)) {
+              Server ime ne čuva u čitljivom obliku, pa ga upiši ponovo.
+            }
+          </p>
+
+          <div class="field-row">
+            <div class="field">
+              <label [attr.for]="'lastName-' + i">Prezime</label>
+              <input
+                [id]="'lastName-' + i"
+                type="text"
+                formControlName="lastName"
+                autocomplete="off"
+              />
+              @if (item.controls.lastName.touched && item.errors?.['lastNameRequired']) {
+                <p class="field-error">Unesi prezime.</p>
+              }
+            </div>
+            <div class="field">
+              <label [attr.for]="'firstName-' + i">Ime</label>
+              <input
+                [id]="'firstName-' + i"
+                type="text"
+                formControlName="firstName"
+                autocomplete="off"
+              />
+              @if (item.controls.firstName.touched && item.errors?.['firstNameRequired']) {
+                <p class="field-error">Unesi ime.</p>
+              }
+            </div>
+          </div>
+
+          @if (documentType !== 'BANK_CARD') {
+            <div class="field">
+              <label [attr.for]="'dateOfBirth-' + i">
+                Datum rođenja <span class="optional">nije obavezno</span>
+              </label>
+              <input
+                [id]="'dateOfBirth-' + i"
+                type="date"
+                formControlName="dateOfBirth"
+                [max]="today"
+              />
+            </div>
+          }
+        } @else if (category !== '') {
+          <div class="field-row">
+            <div class="field">
+              <label [attr.for]="'color-' + i">
+                Boja <span class="optional">nije obavezno</span>
+              </label>
+              <select [id]="'color-' + i" formControlName="color">
+                <option value="">Nije bitno / ne znam</option>
+                @for (option of options().colors; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label [attr.for]="'brand-' + i">
+                Marka <span class="optional">nije obavezno</span>
+              </label>
+              <input [id]="'brand-' + i" type="text" formControlName="brand" />
+              @if (item.controls.brand.errors?.['maxlength']) {
+                <p class="field-error">Marka može imati najviše 100 znakova.</p>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label [attr.for]="'material-' + i">
+              Materijal <span class="optional">nije obavezno</span>
+            </label>
+            <input [id]="'material-' + i" type="text" formControlName="material" />
+            @if (item.controls.material.errors?.['maxlength']) {
+              <p class="field-error">Materijal može imati najviše 50 znakova.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label [attr.for]="'description-' + i">
+              Opis <span class="optional">nije obavezno</span>
+            </label>
+            <textarea
+              [id]="'description-' + i"
+              rows="3"
+              formControlName="description"
+              placeholder="Kako izgleda, da li je oštećen, šta je unutra..."
+            ></textarea>
+            @if (item.controls.description.errors?.['maxlength']) {
+              <p class="field-error">Opis može imati najviše 2000 znakova.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label [attr.for]="'distinctiveMarks-' + i">
+              Posebni znaci <span class="optional">nije obavezno</span>
+            </label>
+            <input
+              [id]="'distinctiveMarks-' + i"
+              type="text"
+              formControlName="distinctiveMarks"
+              placeholder="npr. nalepnica, ogrebotina, privezak"
+            />
+            @if (item.controls.distinctiveMarks.errors?.['maxlength']) {
+              <p class="field-error">Posebni znaci mogu imati najviše 500 znakova.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-light btn-wide"
+    [disabled]="itemGroups.length >= maxItems"
+    (click)="addItem()"
+  >
+    + Dodaj još jedan predmet
+  </button>
+</div>

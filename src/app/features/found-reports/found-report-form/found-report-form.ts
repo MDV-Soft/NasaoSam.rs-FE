@@ -11,20 +11,17 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ItemOptions } from '../../../core/models/item-options.model';
 import {
   CreateFoundReportRequest,
   FoundReportSubmitted,
   ItemLocation,
 } from '../../../core/models/found-report.model';
-import { DocumentType, ItemCategory, ItemColor } from '../../../core/models/lost-report.model';
 import { FoundReportService } from '../../../core/services/found-report.service';
-import { MetaService } from '../../../core/services/meta.service';
 import { apiErrorMessages } from '../../../core/utils/api-error';
 import { ITEM_LOCATION_OPTIONS } from '../../../core/utils/found-report-labels';
-import { buildItemRequest } from '../../../core/utils/lost-item-request';
+import { formatLocalDateTime, roundDownToStep } from '../../../core/utils/moment';
 import {
   MAX_PHOTO_BYTES,
   formatFileSize,
@@ -33,15 +30,16 @@ import {
   preparePhoto,
 } from '../../../core/utils/photo-file';
 import { serbianMobileValidator } from '../../../core/validators/form-validators';
-import { foundItemValidator } from '../../../core/validators/found-item-validators';
 import {
   MAX_FOUND_PAST_DAYS,
   foundTimeValidator,
   handoverValidator,
 } from '../../../core/validators/found-report-validators';
 import { LocationPicker, MapLocation } from '../../lost-reports/location-picker/location-picker';
+import { MomentPicker } from '../../shared/moment-picker/moment-picker';
+import { FinderShell } from '../finder-shell/finder-shell';
 
-type StepId = 'photo' | 'place' | 'items' | 'handover';
+type StepId = 'photo' | 'place' | 'handover';
 
 interface StepInfo {
   id: StepId;
@@ -51,61 +49,41 @@ interface StepInfo {
 const STEPS: StepInfo[] = [
   { id: 'photo', label: 'Fotografija' },
   { id: 'place', label: 'Mesto i vreme' },
-  { id: 'items', label: 'Predmet' },
   { id: 'handover', label: 'Predaja i kontakt' },
 ];
 
-// Najviše predmeta u jednom nalazu (isto kao @Size(max = 10) na backendu)
-const MAX_ITEMS = 10;
-
-const pad = (n: number): string => String(n).padStart(2, '0');
-
-// Oblik koji traži <input type="datetime-local">: lokalno vreme, bez sekundi i zone
-function formatLocalDateTime(date: Date): string {
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
-  );
-}
-
 /**
- * Prijava pronađenog predmeta (javna stranica, bez naloga). Četiri koraka:
- *  1. fotografija   2. mesto i vreme   3. predmet   4. predaja i kontakt
+ * Prijava pronađenog predmeta (javna stranica, bez naloga). Tri koraka:
+ *  1. fotografija   2. mesto i vreme   3. predaja i kontakt
+ *
+ * Predmet se ovde NE opisuje: to nalazač radi posle linka iz mejla, na stranici za pregled, gde će
+ * (kad AI postoji) stajati predlog sa slike koji nalazač samo potvrđuje ili ispravlja.
  *
  * Svaki korak se proverava pre prelaska na sledeći, a unazad se može slobodno. Ništa ne ide na
  * server dok se ne pošalje poslednji korak. Odgovor je samo "proveri mejl": nalaz postaje
- * aktivan tek kad nalazač otvori link iz mejla.
+ * aktivan tek kad nalazač otvori link iz mejla i potvrdi ga.
  */
 @Component({
   selector: 'app-found-report-form',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, LocationPicker],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, LocationPicker, MomentPicker, FinderShell],
   templateUrl: './found-report-form.html',
-  styleUrl: './found-report-form.css',
+  styleUrls: ['../finder-controls.css', './found-report-form.css'],
 })
 export class FoundReportForm implements OnDestroy {
-  private metaService = inject(MetaService);
   private foundReportService = inject(FoundReportService);
   private injector = inject(Injector);
 
   readonly steps = STEPS;
   readonly itemLocations = ITEM_LOCATION_OPTIONS;
-  readonly maxItems = MAX_ITEMS;
+  // Backend ne prima nalaz stariji od 30 dana, pa se toliko dana unazad i nudi
+  readonly maxDaysBack = MAX_FOUND_PAST_DAYS;
   readonly maxPhotoMegabytes = MAX_PHOTO_BYTES / (1024 * 1024);
   readonly formatFileSize = formatFileSize;
-
-  // Granice za polje "kada": ne u budućnosti i ne pre više od 30 dana (isto kao backend)
-  readonly nowLocal: string = formatLocalDateTime(new Date());
-  readonly oldestLocal: string = formatLocalDateTime(
-    new Date(Date.now() - MAX_FOUND_PAST_DAYS * 24 * 60 * 60 * 1000),
-  );
-  // Najkasniji dozvoljen datum rođenja na dokumentu je danas
-  readonly today: string = this.nowLocal.slice(0, 10);
 
   // ---------- Koraci ----------
 
   stepIndex = signal<number>(0);
   currentStep = computed<StepInfo>(() => STEPS[this.stepIndex()]);
-  isLastStep = computed<boolean>(() => this.stepIndex() === STEPS.length - 1);
 
   // Naslov koraka dobija fokus pri svakom prelasku (čitač ekrana i tastatura znaju gde su)
   private heading = viewChild<ElementRef<HTMLElement>>('heading');
@@ -120,7 +98,8 @@ export class FoundReportForm implements OnDestroy {
   // ---------- Korak 2: mesto i vreme ----------
 
   placeForm = new FormGroup({
-    foundAt: new FormControl(this.nowLocal, {
+    // Vreme nalaska bira MomentPicker; kreće od "sada" (zaokruženo naniže na 5 minuta)
+    foundAt: new FormControl(formatLocalDateTime(roundDownToStep(new Date())), {
       nonNullable: true,
       validators: [Validators.required, foundTimeValidator()],
     }),
@@ -139,17 +118,7 @@ export class FoundReportForm implements OnDestroy {
 
   mapLocation = signal<MapLocation | null>(null);
 
-  // ---------- Korak 3: predmeti ----------
-
-  // Liste za padajuće menije (vrste predmeta, dokumenata, boje), sa servera
-  options = signal<ItemOptions | null>(null);
-  optionsFailed = signal<boolean>(false);
-
-  itemsForm = new FormGroup({
-    items: new FormArray([this.createItemGroup()]),
-  });
-
-  // ---------- Korak 4: predaja i kontakt ----------
+  // ---------- Korak 3: predaja i kontakt ----------
 
   // Ograničenja (255, 500, 30) su ista kao u CreateFoundReportRequest na backendu
   handoverForm = new FormGroup(
@@ -190,25 +159,8 @@ export class FoundReportForm implements OnDestroy {
   // Mejl na koji je poslat link (za ekran posle slanja)
   sentTo = signal<string>('');
 
-  constructor() {
-    this.loadOptions();
-  }
-
   ngOnDestroy(): void {
     this.revokePhotoUrl();
-  }
-
-  get itemGroups() {
-    return this.itemsForm.controls.items.controls;
-  }
-
-  loadOptions(): void {
-    this.optionsFailed.set(false);
-
-    this.metaService.getOptions().subscribe({
-      next: (options) => this.options.set(options),
-      error: () => this.optionsFailed.set(true),
-    });
   }
 
   // ---------- Prelazak između koraka ----------
@@ -282,8 +234,7 @@ export class FoundReportForm implements OnDestroy {
       return true;
     }
 
-    const form =
-      id === 'place' ? this.placeForm : id === 'items' ? this.itemsForm : this.handoverForm;
+    const form = id === 'place' ? this.placeForm : this.handoverForm;
     if (form.invalid) {
       form.markAllAsTouched();
       return false;
@@ -338,7 +289,12 @@ export class FoundReportForm implements OnDestroy {
     }
   }
 
-  // ---------- Korak 2: mesto ----------
+  // ---------- Korak 2: vreme i mesto ----------
+
+  onMomentChange(value: string): void {
+    this.placeForm.controls.foundAt.setValue(value);
+    this.placeForm.controls.foundAt.markAsTouched();
+  }
 
   onLocationChange(location: MapLocation | null): void {
     this.mapLocation.set(location);
@@ -349,74 +305,13 @@ export class FoundReportForm implements OnDestroy {
     this.placeForm.controls.latitude.markAsTouched();
   }
 
-  // ---------- Korak 3: predmeti ----------
-
-  addItem(): void {
-    const items = this.itemsForm.controls.items;
-
-    if (items.length < MAX_ITEMS) {
-      items.push(this.createItemGroup());
-    }
-  }
-
-  // Poslednji predmet se ne može ukloniti: nalaz mora imati bar jedan
-  removeItem(index: number): void {
-    const items = this.itemsForm.controls.items;
-
-    if (items.length > 1) {
-      items.removeAt(index);
-    }
-  }
-
-  // Jedan predmet: grupa polja + validator koji zna pravila po vrsti predmeta
-  private createItemGroup() {
-    return new FormGroup(
-      {
-        category: new FormControl<ItemCategory | ''>('', {
-          nonNullable: true,
-          validators: [Validators.required],
-        }),
-        customCategory: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(50)],
-        }),
-        documentType: new FormControl<DocumentType | ''>('', { nonNullable: true }),
-        color: new FormControl<ItemColor | ''>('', { nonNullable: true }),
-        brand: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(100)] }),
-        material: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(50)],
-        }),
-        description: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(2000)],
-        }),
-        distinctiveMarks: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(500)],
-        }),
-        // Samo za dokumenta; serveru idu isključivo kao heš
-        lastName: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(100)],
-        }),
-        firstName: new FormControl('', {
-          nonNullable: true,
-          validators: [Validators.maxLength(100)],
-        }),
-        dateOfBirth: new FormControl('', { nonNullable: true }),
-      },
-      { validators: foundItemValidator() },
-    );
-  }
-
-  // ---------- Korak 4: slanje ----------
+  // ---------- Korak 3: slanje ----------
 
   /**
-   * Šalje nalaz. Pre toga proverava poslednji korak (i, za svaki slučaj, sve prethodne),
-   * pravi heševe imena sa dokumenata (to je asinhrono) i sastavlja zahtev.
+   * Šalje nalaz. Pre toga proverava poslednji korak (i, za svaki slučaj, sve prethodne)
+   * i sastavlja zahtev. Predmeti se ne šalju: nalazač ih unosi posle linka iz mejla.
    */
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     // Dvoklik ne sme da pošalje dva nalaza
     if (this.isSaving()) {
       return;
@@ -442,19 +337,6 @@ export class FoundReportForm implements OnDestroy {
     this.isSaving.set(true);
     this.submitErrors.set([]);
 
-    let items;
-    try {
-      items = await Promise.all(
-        this.itemGroups.map((group) => buildItemRequest(group.getRawValue())),
-      );
-    } catch (error) {
-      this.isSaving.set(false);
-      this.submitErrors.set([
-        error instanceof Error ? error.message : 'Priprema predmeta nije uspela.',
-      ]);
-      return;
-    }
-
     const request: CreateFoundReportRequest = {
       finderEmail: handover.finderEmail.trim(),
       foundAt: new Date(place.foundAt).toISOString(),
@@ -464,7 +346,6 @@ export class FoundReportForm implements OnDestroy {
       itemLocation: handover.itemLocation as ItemLocation,
       controlQuestion: handover.controlQuestion.trim(),
       controlAnswer: handover.controlAnswer.trim(),
-      items,
     };
 
     // Prazna neobavezna polja se izostavljaju, ne šalju se kao ""
@@ -506,11 +387,8 @@ export class FoundReportForm implements OnDestroy {
     if (this.placeForm.invalid) {
       return 1;
     }
-    if (this.itemsForm.invalid) {
-      return 2;
-    }
     if (this.handoverForm.invalid) {
-      return 3;
+      return 2;
     }
     return null;
   }

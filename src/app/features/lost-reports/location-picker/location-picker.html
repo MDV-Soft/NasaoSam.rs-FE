@@ -1,17 +1,21 @@
 <div class="lp">
-  <div class="lp-toolbar">
-    <button type="button" class="lp-tool" (click)="useMyLocation()" [disabled]="locating()">
-      @if (locating()) {
-        Tražim lokaciju...
-      } @else {
-        Moja trenutna lokacija
+  @if (showLocateTools() || current() !== null) {
+    <div class="lp-toolbar">
+      @if (showLocateTools()) {
+        <button type="button" class="lp-tool" (click)="useMyLocation()" [disabled]="locating()">
+          @if (locating()) {
+            Tražim lokaciju...
+          } @else {
+            Moja trenutna lokacija
+          }
+        </button>
+        <button type="button" class="lp-tool" (click)="pinAtCenter()">Pin na sredinu mape</button>
       }
-    </button>
-    <button type="button" class="lp-tool" (click)="pinAtCenter()">Pin na sredinu mape</button>
-    @if (current() !== null) {
-      <button type="button" class="lp-tool lp-tool-remove" (click)="clear()">Ukloni pin</button>
-    }
-  </div>
+      @if (current() !== null) {
+        <button type="button" class="lp-tool lp-tool-remove" (click)="clear()">Ukloni pin</button>
+      }
+    </div>
+  }
 
   <div class="lp-frame">
     <div #map class="lp-map" aria-label="Mapa: klikni da obeležiš mesto"></div>

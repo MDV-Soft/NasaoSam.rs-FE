@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
+import { FinderSessionService } from '../services/finder-session.service';
 
 // Putanje koje se zovu BEZ prijave. Tu ne šaljemo token, a 401 znači "pogrešna lozinka",
 // pa korisnika ne smemo slati na /login (već je tamo).
@@ -18,6 +19,7 @@ const PUBLIC_PATHS: string[] = [
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const finderSession = inject(FinderSessionService);
   const router = inject(Router);
 
   // Token šaljemo samo našem backendu, nikad nekom tuđem serveru
@@ -26,6 +28,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (!isOurApi || isPublic) {
     return next(req);
+  }
+
+  // Nalazač ima svoj token (iz linka u mejlu), a ne vlasnikov. Vlasnikov token se tamo ne šalje
+  // (backend bi odbio ulogu), a istekao nalazačev token ne odjavljuje vlasnika.
+  if (req.url.startsWith(environment.apiUrl + '/finder/')) {
+    const finderToken: string | null = finderSession.getToken();
+    const finderRequest = finderToken
+      ? req.clone({ setHeaders: { Authorization: 'Bearer ' + finderToken } })
+      : req;
+
+    return next(finderRequest).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // 401 = privremeni token je istekao (traje 2 sata): nalazač mora ponovo da otvori link
+        if (error.status === 401) {
+          finderSession.clear();
+          router.navigate(['/nalaz']);
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   const token: string | null = authService.getToken();

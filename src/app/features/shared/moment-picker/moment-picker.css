@@ -1,0 +1,98 @@
+.mp-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mp-chip {
+  flex: 1 1 5.5rem;
+  min-height: 2.9rem;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--teal);
+  background: #fff;
+  border: 1px solid #c9d4d7;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.mp-chip:hover {
+  border-color: var(--teal);
+}
+
+.mp-chip-active,
+.mp-chip-active:hover {
+  color: #fff;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.mp-chip:focus-visible,
+.mp-select:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.mp-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  font-size: 1rem; /* 16px: iPhone ne zumira polje */
+  color: var(--teal);
+  background: #fff;
+  border: 1px solid #c9d4d7;
+  border-radius: 0.75rem;
+}
+
+.mp-date {
+  margin-top: 0.6rem;
+}
+
+.mp-time {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.mp-field {
+  flex: 1;
+  max-width: 9rem;
+}
+
+.mp-field span {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.mp-colon {
+  padding-bottom: 0.6rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Rečenica koja potvrđuje izbor */
+.mp-summary {
+  margin: 0.9rem 0 0;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: #f2f7f7;
+  border-left: 3px solid var(--finder);
+  border-radius: 0 0.6rem 0.6rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-chip {
+    transition: none;
+  }
+}

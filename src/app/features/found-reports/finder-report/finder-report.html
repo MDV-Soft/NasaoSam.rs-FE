@@ -1,0 +1,312 @@
+<app-finder-shell>
+  @if (report(); as r) {
+    <!-- ===================== Naslov po statusu ===================== -->
+    <section class="intro">
+      @switch (r.status) {
+        @case ('PENDING_REVIEW') {
+          <h1 #heading tabindex="-1">Proveri nalaz</h1>
+          <p class="lead">Opiši predmet i potvrdi nalaz. Tek tada počinjemo da tražimo vlasnika.</p>
+        }
+        @case ('ACTIVE') {
+          <h1 #heading tabindex="-1">Nalaz je aktivan</h1>
+          <p class="lead">
+            Tražimo vlasnika. Nalaz važi do {{ r.expiresAt | date: 'dd.MM.yyyy.' }}
+          </p>
+        }
+        @case ('WITHDRAWN') {
+          <h1 #heading tabindex="-1">Nalaz je povučen</h1>
+          <p class="lead">Nalaz više ne učestvuje u traženju vlasnika.</p>
+        }
+        @case ('EXPIRED') {
+          <h1 #heading tabindex="-1">Nalaz je istekao</h1>
+          <p class="lead">Rok za nalaz je prošao, pa se vlasnik više ne traži.</p>
+        }
+        @case ('RETURNED') {
+          <h1 #heading tabindex="-1">Predmet je vraćen</h1>
+          <p class="lead">Hvala ti što si predmet vratio vlasniku.</p>
+        }
+        @default {
+          <h1 #heading tabindex="-1">Nalaz čeka potvrdu mejla</h1>
+          <p class="lead">Otvori link iz mejla da nastaviš.</p>
+        }
+      }
+    </section>
+
+    @if (staleMessage() !== '') {
+      <p class="notice stale" role="alert">{{ staleMessage() }}</p>
+    }
+
+    <!-- ===================== Fotografija ===================== -->
+    <section class="card">
+      <h2>Fotografija</h2>
+      @if (photoUrl(); as url) {
+        <img class="photo" [src]="url" alt="Fotografija pronađenog predmeta" />
+      } @else if (photoFailed()) {
+        <p class="hint">Fotografija trenutno nije dostupna.</p>
+      } @else if (r.hasPhoto) {
+        <p class="hint">Učitavanje fotografije...</p>
+      }
+      <p class="notice">
+        Vlasnik vidi samo zamućenu verziju fotografije, dok ne dokaže da je predmet njegov.
+      </p>
+    </section>
+
+    <!-- ===================== Podaci o nalazu ===================== -->
+    <section class="card">
+      <h2>Podaci o nalazu</h2>
+      <dl class="facts">
+        <div>
+          <dt>Kada</dt>
+          <dd>{{ r.foundAt | date: 'dd.MM.yyyy. u HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Gde</dt>
+          <dd>{{ placeText(r) }}</dd>
+        </div>
+        <div>
+          <dt>Gde je predmet</dt>
+          <dd>{{ itemLocationText(r) }}</dd>
+        </div>
+        <div>
+          <dt>Kontrolno pitanje</dt>
+          <dd>{{ r.controlQuestion }}</dd>
+        </div>
+      </dl>
+
+      @if (canWithdraw()) {
+        @if (editingLocation()) {
+          <form
+            class="location-form"
+            [formGroup]="locationForm"
+            (ngSubmit)="saveLocation()"
+            novalidate
+          >
+            @let itemLocation = locationForm.controls.itemLocation;
+            <fieldset class="choices">
+              <legend>Gde je predmet sada?</legend>
+              <div class="choice-grid">
+                @for (option of itemLocations; track option.value) {
+                  <label class="choice">
+                    <input type="radio" formControlName="itemLocation" [value]="option.value" />
+                    <span class="choice-title">{{ option.label }}</span>
+                    <span class="choice-hint">{{ option.hint }}</span>
+                  </label>
+                }
+              </div>
+              @if (itemLocation.touched && itemLocation.invalid) {
+                <p class="field-error">Izaberi gde se predmet nalazi.</p>
+              }
+            </fieldset>
+
+            @if (itemLocation.value !== '' && itemLocation.value !== 'WITH_FINDER') {
+              @let handoverInfo = locationForm.controls.handoverInfo;
+              <div class="field">
+                <label for="handoverInfo">Gde vlasnik može da ga preuzme?</label>
+                <input
+                  id="handoverInfo"
+                  type="text"
+                  formControlName="handoverInfo"
+                  placeholder="adresa, šalter i radno vreme"
+                />
+                @if (handoverInfo.touched && locationForm.errors?.['handoverRequired']) {
+                  <p class="field-error">Upiši gde vlasnik može da preuzme predmet.</p>
+                } @else if (handoverInfo.errors?.['maxlength']) {
+                  <p class="field-error">Opis može imati najviše 255 znakova.</p>
+                }
+              </div>
+            }
+
+            @if (errorArea() === 'location' && actionErrors().length > 0) {
+              <ul class="form-error" role="alert">
+                @for (message of actionErrors(); track $index) {
+                  <li>{{ message }}</li>
+                }
+              </ul>
+            }
+
+            <div class="actions">
+              <button
+                type="button"
+                class="btn btn-light"
+                [disabled]="busy() !== null"
+                (click)="cancelEditLocation()"
+              >
+                Odustani
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="busy() !== null">
+                @if (busy() === 'location') {
+                  Čuvanje...
+                } @else {
+                  Sačuvaj
+                }
+              </button>
+            </div>
+          </form>
+        } @else {
+          <button type="button" class="btn btn-light btn-small" (click)="startEditLocation()">
+            Promeni gde je predmet
+          </button>
+        }
+      }
+    </section>
+
+    <!-- ===================== Predmeti ===================== -->
+    <section class="card">
+      <h2>Predmeti</h2>
+
+      @if (isPending()) {
+        <p class="hint">
+          Opiši svaki predmet koji si našao: vrstu, boju i po čemu se prepoznaje. Što je opis
+          preciznije, vlasnik lakše prepoznaje svoju stvar.
+        </p>
+
+        @if (options(); as opts) {
+          <app-found-items-editor [options]="opts" [initialItems]="r.items" />
+        } @else if (optionsFailed()) {
+          <p class="form-error">Liste za izbor nisu učitane. Proveri vezu i pokušaj ponovo.</p>
+          <button type="button" class="btn btn-light" (click)="loadOptions()">
+            Pokušaj ponovo
+          </button>
+        } @else {
+          <p class="hint">Učitavanje lista...</p>
+        }
+
+        @if (itemsSaved()) {
+          <p class="saved" role="status">Predmeti su sačuvani.</p>
+        }
+        @if (errorArea() === 'items' && actionErrors().length > 0) {
+          <ul class="form-error" role="alert">
+            @for (message of actionErrors(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+
+        <div class="actions">
+          <button
+            type="button"
+            class="btn btn-light"
+            [disabled]="busy() !== null || options() === null"
+            (click)="saveItems()"
+          >
+            @if (busy() === 'save') {
+              Čuvanje...
+            } @else {
+              Sačuvaj predmete
+            }
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="busy() !== null || options() === null"
+            (click)="confirm()"
+          >
+            @if (busy() === 'confirm') {
+              Potvrđivanje...
+            } @else {
+              Potvrdi nalaz
+            }
+          </button>
+        </div>
+        <p class="hint after-actions">
+          Link iz mejla možeš da otvoriš ponovo dok ne potvrdiš nalaz.
+        </p>
+      } @else {
+        @if (r.items.length === 0) {
+          <p class="hint">Predmeti nisu uneti.</p>
+        } @else {
+          <ul class="item-list">
+            @for (item of r.items; track $index) {
+              <li>
+                <strong>{{ itemTitle(item) }}</strong>
+                @if (item.color) {
+                  <span>, {{ colorLabel(item) }}</span>
+                }
+                @if (item.brand) {
+                  <span>, {{ item.brand }}</span>
+                }
+                @if (item.description) {
+                  <p>{{ item.description }}</p>
+                }
+                @if (item.distinctiveMarks) {
+                  <p>Posebni znaci: {{ item.distinctiveMarks }}</p>
+                }
+              </li>
+            }
+          </ul>
+        }
+      }
+    </section>
+
+    <!-- ===================== Povlačenje ===================== -->
+    @if (canWithdraw()) {
+      <section class="card">
+        <h2>Povuci nalaz</h2>
+        <p class="hint">
+          Ako predmet više nije kod tebe ili si ga greškom prijavio, nalaz možeš da povučeš. To se
+          ne može poništiti.
+        </p>
+
+        @if (errorArea() === 'withdraw' && actionErrors().length > 0) {
+          <ul class="form-error" role="alert">
+            @for (message of actionErrors(); track $index) {
+              <li>{{ message }}</li>
+            }
+          </ul>
+        }
+
+        @if (confirmingWithdraw()) {
+          <div class="actions">
+            <button
+              type="button"
+              class="btn btn-light"
+              [disabled]="busy() !== null"
+              (click)="cancelWithdraw()"
+            >
+              Odustani
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              [disabled]="busy() !== null"
+              (click)="withdraw()"
+            >
+              @if (busy() === 'withdraw') {
+                Povlačenje...
+              } @else {
+                Da, povuci nalaz
+              }
+            </button>
+          </div>
+        } @else {
+          <button type="button" class="btn btn-danger btn-small" (click)="askWithdraw()">
+            Povuci nalaz
+          </button>
+        }
+
+        @if (r.status === 'ACTIVE' && accessExpiresAt(); as expires) {
+          <p class="notice">
+            Ovu stranicu možeš da menjaš do {{ expires | date: 'HH:mm' }}. Posle toga link iz mejla
+            više ne radi.
+          </p>
+        }
+      </section>
+    }
+  } @else if (loadError() !== '') {
+    <section class="intro">
+      <h1>Nalaz nije učitan</h1>
+      <p class="lead">{{ loadError() }}</p>
+    </section>
+    <section class="card">
+      <div class="actions">
+        <a class="btn btn-light" routerLink="/">Početna</a>
+        <button type="button" class="btn btn-primary" (click)="loadReport()">Pokušaj ponovo</button>
+      </div>
+    </section>
+  } @else {
+    <section class="intro">
+      <h1>Učitavanje nalaza</h1>
+      <p class="lead">Samo trenutak...</p>
+    </section>
+  }
+</app-finder-shell>

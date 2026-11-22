@@ -1,0 +1,88 @@
+/* Zajednički stilovi (kartica, polja, dugmad, izbor mesta...) su u ../finder-controls.css */
+.photo {
+  display: block;
+  width: 100%;
+  max-height: 22rem;
+  object-fit: contain;
+  background: #eef1f3;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+/* Podaci o nalazu: naziv levo, vrednost desno (na uskom ekranu jedno ispod drugog) */
+.facts {
+  margin: 0 0 1.25rem;
+}
+
+.facts > div {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.facts > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.facts dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  line-height: 1.45;
+}
+
+@media (min-width: 560px) {
+  .facts > div {
+    grid-template-columns: 11rem 1fr;
+    gap: 1rem;
+  }
+}
+
+.location-form {
+  padding-top: 0.25rem;
+}
+
+.item-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item-list li {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.item-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.item-list p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.saved {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--owner);
+}
+
+.after-actions {
+  margin: 1rem 0 0;
+}
+
+/* Obaveštenje na vrhu (npr. nalaz je u međuvremenu promenjen), odvojeno od naslova */
+.stale {
+  margin: 0 0 1rem;
+  background: #fff;
+}

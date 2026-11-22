@@ -1,0 +1,19 @@
+/* Zajednički stilovi (polja, dugmad...) su u ../finder-controls.css */
+:host {
+  display: block;
+}
+
+.item-card {
+  margin-bottom: 1rem;
+  padding: 1.1rem;
+  background: #f6f9f9;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}

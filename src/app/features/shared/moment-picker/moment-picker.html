@@ -1,0 +1,54 @@
+<div class="mp">
+  <div class="mp-days" role="radiogroup" aria-label="Dan">
+    @for (button of dayButtons(); track button.id) {
+      <button
+        type="button"
+        role="radio"
+        class="mp-chip"
+        [class.mp-chip-active]="parts().day === button.id"
+        [attr.aria-checked]="parts().day === button.id"
+        (click)="chooseDay(button.id)"
+      >
+        {{ button.label }}
+      </button>
+    }
+  </div>
+
+  @if (parts().day === 'earlier') {
+    <select
+      class="mp-select mp-date"
+      aria-label="Datum"
+      (change)="chooseEarlierDate($any($event.target).value)"
+    >
+      @for (day of earlierDays(); track day.value) {
+        <option [value]="day.value" [selected]="day.value === parts().date">
+          {{ day.label }}
+        </option>
+      }
+    </select>
+  }
+
+  <div class="mp-time">
+    <label class="mp-field">
+      <span>Sat</span>
+      <select class="mp-select" (change)="chooseHour(+$any($event.target).value)">
+        @for (hour of hours; track hour) {
+          <option [value]="hour" [selected]="hour === parts().hour">{{ pad(hour) }}</option>
+        }
+      </select>
+    </label>
+    <span class="mp-colon" aria-hidden="true">:</span>
+    <label class="mp-field">
+      <span>Minuti</span>
+      <select class="mp-select" (change)="chooseMinute(+$any($event.target).value)">
+        @for (minute of minutes; track minute) {
+          <option [value]="minute" [selected]="minute === parts().minute">
+            {{ pad(minute) }}
+          </option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <p class="mp-summary" aria-live="polite">{{ summary() }}</p>
+</div>

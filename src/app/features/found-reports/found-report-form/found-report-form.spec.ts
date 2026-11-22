@@ -3,42 +3,16 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { FoundReportForm } from './found-report-form';
-import { ItemFormValue } from '../../../core/utils/lost-item-request';
-import { ItemOptions } from '../../../core/models/item-options.model';
 import { CreateFoundReportRequest } from '../../../core/models/found-report.model';
+import { formatLocalDate, formatLocalDateTime } from '../../../core/utils/moment';
 import { MAX_PHOTO_BYTES } from '../../../core/utils/photo-file';
 import { environment } from '../../../../environments/environment';
 
-const OPTIONS_URL = environment.apiUrl + '/meta/options';
 const CREATE_URL = environment.apiUrl + '/found-reports';
 
-const SAMPLE_OPTIONS: ItemOptions = {
-  categories: [
-    { value: 'WALLET', label: 'Novčanik' },
-    { value: 'DOCUMENT', label: 'Dokument' },
-    { value: 'KEYS', label: 'Ključevi' },
-    { value: 'OTHER', label: 'Ostalo' },
-  ],
-  documentTypes: [
-    { value: 'ID_CARD', label: 'Lična karta' },
-    { value: 'BANK_CARD', label: 'Platna kartica' },
-  ],
-  colors: [
-    { value: 'BLACK', label: 'Crna' },
-    { value: 'BLUE', label: 'Plava' },
-  ],
-};
-
-const pad = (n: number): string => String(n).padStart(2, '0');
-
-// Lokalno vreme u obliku <input type="datetime-local">, pomereno za zadati broj sati
-const localTime = (hoursFromNow: number): string => {
-  const date = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
-  );
-};
+// Lokalno vreme u obliku "GGGG-MM-DDTHH:mm", pomereno za zadati broj sati
+const localTime = (hoursFromNow: number): string =>
+  formatLocalDateTime(new Date(Date.now() + hoursFromNow * 60 * 60 * 1000));
 
 const photoFile = (size = 1000, name = 'kljucevi.jpg', type = 'image/jpeg'): File =>
   new File([new Uint8Array(size)], name, { type });
@@ -71,10 +45,6 @@ describe('FoundReportForm', () => {
     } as never);
   };
 
-  const fillItem = (index: number, values: Partial<ItemFormValue>) => {
-    component.itemGroups[index].patchValue(values);
-  };
-
   const fillHandover = (overrides: Record<string, unknown> = {}) => {
     component.handoverForm.setValue({
       itemLocation: 'WITH_FINDER',
@@ -93,12 +63,8 @@ describe('FoundReportForm', () => {
       await pickPhoto(photoFile());
     }
     while (component.stepIndex() < index) {
-      const id = component.currentStep().id;
-      if (id === 'place') {
+      if (component.currentStep().id === 'place') {
         fillPlace();
-      }
-      if (id === 'items') {
-        fillItem(0, { category: 'KEYS' });
       }
       component.next();
     }
@@ -141,7 +107,6 @@ describe('FoundReportForm', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(FoundReportForm);
     component = fixture.componentInstance;
-    httpMock.expectOne(OPTIONS_URL).flush(SAMPLE_OPTIONS);
     await settle();
   });
 
@@ -151,55 +116,61 @@ describe('FoundReportForm', () => {
     URL.revokeObjectURL = originalRevokeUrl;
   });
 
-  it('starts on the photo step and loads the option lists', () => {
+  it('starts on the photo step', () => {
     expect(component).toBeTruthy();
     expect(component.stepIndex()).toBe(0);
     expect(component.currentStep().id).toBe('photo');
-    expect(component.options()).toEqual(SAMPLE_OPTIONS);
     expect(text()).toContain('Prijavi pronađeni predmet');
     expect(text()).toContain('Slikaj predmet');
   });
 
-  it('has no AI wording, no emoji and no icons on any step', async () => {
+  it('does not ask for the lists of items (the item is described after the link from the email)', () => {
+    httpMock.expectNone(environment.apiUrl + '/meta/options');
+  });
+
+  it('has no AI wording, no emoji, no icons and no floating tag on any step', async () => {
     const seen: string[] = [formText()];
     let icons = strayIcons();
-    for (const step of [1, 2, 3]) {
+    let tags = page().querySelectorAll('.tag').length;
+    for (const step of [1, 2]) {
       await goToStep(step);
       seen.push(formText());
       icons += strayIcons();
+      tags += page().querySelectorAll('.tag').length;
     }
 
     const all = seen.join(' ').toLowerCase();
     expect(all).not.toMatch(/\bai\b|veštačk|inteligencij/);
     expect(all).not.toMatch(/\p{Extended_Pictographic}/u);
     expect(icons).toBe(0);
+    expect(tags).toBe(0);
+    expect(all).not.toContain('našao sam'); // plutajući znak iznad naslova je uklonjen
   });
 
   // ===================== Traka napretka =====================
 
   describe('progress bar', () => {
-    it('shows four steps and marks the current one', async () => {
+    it('shows three steps and marks the current one', () => {
       const items = page().querySelectorAll('.progress li');
-      expect(items.length).toBe(4);
+      expect(items.length).toBe(3);
       expect(items[0].classList).toContain('current');
       expect(text()).toContain('Fotografija');
       expect(text()).toContain('Mesto i vreme');
-      expect(text()).toContain('Predmet');
       expect(text()).toContain('Predaja i kontakt');
-      expect(text()).toContain('Korak 1 od 4');
+      expect(text()).toContain('Korak 1 od 3');
     });
 
     it('lets the user go back to a finished step but not jump ahead', async () => {
       await goToStep(2);
 
       const buttons = Array.from(page().querySelectorAll<HTMLButtonElement>('.progress button'));
-      expect(buttons.map((b) => b.disabled)).toEqual([false, false, true, true]);
+      expect(buttons.map((b) => b.disabled)).toEqual([false, false, true]);
 
       buttons[0].click();
       await settle();
       expect(component.stepIndex()).toBe(0);
 
-      component.goTo(3); // unapred se ne skače
+      component.goTo(2); // unapred se ne skače
       expect(component.stepIndex()).toBe(0);
     });
   });
@@ -293,12 +264,59 @@ describe('FoundReportForm', () => {
       await goToStep(1);
     });
 
-    it('starts with "now" as the time and shows the map without a radius choice', () => {
+    const dayButton = (label: string) =>
+      Array.from(page().querySelectorAll<HTMLButtonElement>('.mp-chip')).find(
+        (b) => b.textContent?.trim() === label,
+      )!;
+
+    it('picks the time with the picker, not with the native datetime field', () => {
       expect(component.currentStep().id).toBe('place');
-      expect(component.placeForm.controls.foundAt.value).not.toBe('');
-      expect(page().querySelector('app-location-picker')).not.toBeNull();
+      expect(page().querySelector('app-moment-picker')).not.toBeNull();
+      expect(page().querySelector('input[type="datetime-local"]')).toBeNull();
+      expect(text()).toContain('Kada si ga našao?');
+    });
+
+    it('starts with "today" and a time that is not in the future', () => {
+      const value = component.placeForm.controls.foundAt.value;
+
+      expect(value.slice(0, 10)).toBe(formatLocalDate(new Date()));
+      expect(new Date(value).getTime()).toBeLessThanOrEqual(Date.now());
+      expect(component.placeForm.controls.foundAt.valid).toBe(true);
+    });
+
+    it('takes the day chosen in the picker into the form (real click on "Juče")', async () => {
+      const before = component.placeForm.controls.foundAt.value;
+
+      dayButton('Juče').click();
+      await settle();
+
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const after = component.placeForm.controls.foundAt.value;
+      expect(after.slice(0, 10)).toBe(formatLocalDate(yesterday));
+      expect(after.slice(11)).toBe(before.slice(11)); // vreme ostaje isto
+      expect(text()).toContain('Juče,');
+    });
+
+    it('shows the sentence that confirms what was chosen', () => {
+      expect(page().querySelector('.mp-summary')?.textContent).toContain('Danas,');
+    });
+
+    it('shows the map with only a short instruction, no tools and no radius', () => {
+      expect(text()).toContain('Što preciznije označite na mapi gde ste našli predmet.');
+      expect(text()).not.toContain('Moja trenutna lokacija');
+      expect(text()).not.toContain('Pin na sredinu mape');
       expect(page().querySelector('.lp-radius')).toBeNull();
       expect(page().querySelector('#latitude')).toBeNull();
+    });
+
+    it('offers "remove pin" only after a pin is placed', async () => {
+      expect(page().querySelector('.lp-tool')).toBeNull();
+
+      component.onLocationChange({ latitude: 44.8, longitude: 20.4, radiusMeters: 0 });
+      await settle();
+
+      expect(page().querySelector('.lp-tool')?.textContent).toContain('Ukloni pin');
     });
 
     it('asks for the city and for a pin on the map', async () => {
@@ -315,11 +333,6 @@ describe('FoundReportForm', () => {
       expect(component.placeForm.getRawValue()).toMatchObject({
         latitude: 44.8125,
         longitude: 20.4612,
-      });
-      expect(component.mapLocation()).toEqual({
-        latitude: 44.8125,
-        longitude: 20.4612,
-        radiusMeters: 0,
       });
 
       component.onLocationChange(null);
@@ -373,132 +386,11 @@ describe('FoundReportForm', () => {
     });
   });
 
-  // ===================== Korak 3: predmeti =====================
+  // ===================== Korak 3: predaja i kontakt =====================
 
-  describe('step 3: items', () => {
+  describe('step 3: handover and contact', () => {
     beforeEach(async () => {
       await goToStep(2);
-    });
-
-    it('starts with one empty item and the labels from the server', () => {
-      expect(component.currentStep().id).toBe('items');
-      expect(component.itemGroups.length).toBe(1);
-
-      const labels = Array.from(page().querySelectorAll('#category-0 option')).map((o) =>
-        o.textContent?.trim(),
-      );
-      expect(labels).toEqual(['Izaberi vrstu', 'Novčanik', 'Dokument', 'Ključevi', 'Ostalo']);
-    });
-
-    it('asks for the category', async () => {
-      component.next();
-      await settle();
-
-      expect(component.stepIndex()).toBe(2);
-      expect(text()).toContain('Izaberi vrstu predmeta.');
-    });
-
-    it('does not ask for a description (unlike a lost report)', () => {
-      fillItem(0, { category: 'WALLET' });
-      component.next();
-
-      expect(component.stepIndex()).toBe(3);
-    });
-
-    it('shows the fields that belong to the chosen category', async () => {
-      expect(page().querySelector('#description-0')).toBeNull();
-
-      fillItem(0, { category: 'WALLET' });
-      await settle();
-      expect(page().querySelector('#description-0')).not.toBeNull();
-      expect(page().querySelector('#color-0')).not.toBeNull();
-      expect(page().querySelector('#lastName-0')).toBeNull();
-      expect(page().querySelector('#customCategory-0')).toBeNull();
-
-      fillItem(0, { category: 'OTHER' });
-      await settle();
-      expect(page().querySelector('#customCategory-0')).not.toBeNull();
-
-      fillItem(0, { category: 'DOCUMENT' });
-      await settle();
-      expect(page().querySelector('#documentType-0')).not.toBeNull();
-      expect(page().querySelector('#lastName-0')).not.toBeNull();
-      expect(page().querySelector('#firstName-0')).not.toBeNull();
-      expect(page().querySelector('#description-0')).toBeNull();
-      expect(page().querySelector('#color-0')).toBeNull();
-    });
-
-    it('asks what the item is for "Other" and everything for a document', async () => {
-      fillItem(0, { category: 'OTHER' });
-      component.next();
-      await settle();
-      expect(text()).toContain('Upiši šta je predmet.');
-
-      fillItem(0, { category: 'DOCUMENT' });
-      component.next();
-      await settle();
-      expect(text()).toContain('Izaberi vrstu dokumenta.');
-      expect(text()).toContain('Unesi prezime.');
-      expect(text()).toContain('Unesi ime.');
-      expect(component.stepIndex()).toBe(2);
-    });
-
-    it('hides the date of birth for a bank card', async () => {
-      fillItem(0, { category: 'DOCUMENT', documentType: 'ID_CARD' });
-      await settle();
-      expect(page().querySelector('#dateOfBirth-0')).not.toBeNull();
-
-      fillItem(0, { documentType: 'BANK_CARD' });
-      await settle();
-      expect(page().querySelector('#dateOfBirth-0')).toBeNull();
-    });
-
-    it('adds items up to 10, and then the button is disabled', async () => {
-      const addButton = (): HTMLButtonElement =>
-        Array.from(page().querySelectorAll('button')).find((b) =>
-          b.textContent?.includes('Dodaj još jedan predmet'),
-        ) as HTMLButtonElement;
-
-      for (let i = 0; i < 12; i++) {
-        addButton().click();
-        await settle();
-      }
-
-      expect(component.itemGroups.length).toBe(10);
-      expect(page().querySelectorAll('.item-card').length).toBe(10);
-      expect(addButton().disabled).toBe(true);
-    });
-
-    it('removes an item but never the last one', () => {
-      component.addItem();
-      fillItem(0, { category: 'WALLET' });
-      fillItem(1, { category: 'KEYS' });
-
-      component.removeItem(0);
-      expect(component.itemGroups.length).toBe(1);
-      expect(component.itemGroups[0].controls.category.value).toBe('KEYS');
-
-      component.removeItem(0);
-      expect(component.itemGroups.length).toBe(1);
-    });
-
-    it('checks every item, not only the first', () => {
-      component.addItem();
-      fillItem(0, { category: 'WALLET' });
-
-      component.next();
-
-      expect(component.stepIndex()).toBe(2);
-      expect(component.itemGroups[0].valid).toBe(true);
-      expect(component.itemGroups[1].valid).toBe(false);
-    });
-  });
-
-  // ===================== Korak 4: predaja i kontakt =====================
-
-  describe('step 4: handover and contact', () => {
-    beforeEach(async () => {
-      await goToStep(3);
     });
 
     it('offers three places for the item and no handover field until one is chosen', () => {
@@ -516,7 +408,7 @@ describe('FoundReportForm', () => {
       expect(page().querySelector('#handoverInfo')).not.toBeNull();
       expect(text()).toContain('Upiši gde vlasnik može da preuzme predmet.');
 
-      await component.onSubmit();
+      component.onSubmit();
       httpMock.expectNone(CREATE_URL);
     });
 
@@ -538,7 +430,7 @@ describe('FoundReportForm', () => {
     });
 
     it('asks for the question, the answer and an email, and says what is missing', async () => {
-      await component.onSubmit();
+      component.onSubmit();
       await settle();
 
       httpMock.expectNone(CREATE_URL);
@@ -565,7 +457,7 @@ describe('FoundReportForm', () => {
       // Bez skraćivanja bi ovo bilo odbijeno kao neispravan mejl
       expect(component.handoverForm.controls.finderEmail.errors?.['email']).toBeTruthy();
 
-      await component.onSubmit();
+      component.onSubmit();
 
       const req = httpMock.expectOne(CREATE_URL);
       expect((await readRequest(req)).report.finderEmail).toBe('nalazac@test.rs');
@@ -575,7 +467,7 @@ describe('FoundReportForm', () => {
     it('treats a question or an answer with only spaces as empty', async () => {
       fillHandover({ controlQuestion: '   ', controlAnswer: '  ' });
 
-      await component.onSubmit();
+      component.onSubmit();
       await settle();
 
       httpMock.expectNone(CREATE_URL);
@@ -615,8 +507,6 @@ describe('FoundReportForm', () => {
         longitude: 20.4612,
       });
       component.next();
-      fillItem(0, { category: 'WALLET', color: 'BLACK', brand: 'Guess', description: '' });
-      component.next();
       fillHandover({
         itemLocation: 'AT_POLICE',
         handoverInfo: ' PS Vračar, Njegoševa 20 ',
@@ -628,12 +518,11 @@ describe('FoundReportForm', () => {
       await settle();
     };
 
-    it('sends multipart with the whole report and the photo, without a token', async () => {
+    it('sends multipart with the whole report and the photo, without a token and without items', async () => {
       await fillEverything();
       const foundAt = component.placeForm.controls.foundAt.value;
 
-      const sending = component.onSubmit();
-      await sending;
+      component.onSubmit();
 
       const req = httpMock.expectOne(CREATE_URL);
       expect(req.request.method).toBe('POST');
@@ -643,7 +532,7 @@ describe('FoundReportForm', () => {
       expect(report).toEqual({
         finderEmail: 'Nalazac@Test.rs',
         finderPhone: '064 123 4567',
-        // vreme iz datetime-local je lokalno, a šalje se u UTC
+        // vreme iz izbora je lokalno, a šalje se u UTC
         foundAt: new Date(foundAt).toISOString(),
         city: 'Beograd',
         placeDescription: 'ispred pošte',
@@ -653,8 +542,8 @@ describe('FoundReportForm', () => {
         handoverInfo: 'PS Vračar, Njegoševa 20',
         controlQuestion: 'Šta piše na privesku?',
         controlAnswer: 'Mića',
-        items: [{ category: 'WALLET', color: 'BLACK', brand: 'Guess' }],
       });
+      expect('items' in report).toBe(false); // predmet se opisuje posle linka iz mejla
       expect(photo.name).toBe('novcanik.jpg');
       expect(photo.size).toBe(3000);
 
@@ -666,11 +555,9 @@ describe('FoundReportForm', () => {
       component.next();
       fillPlace({ placeDescription: '   ' });
       component.next();
-      fillItem(0, { category: 'KEYS' });
-      component.next();
       fillHandover({ itemLocation: 'WITH_FINDER', finderPhone: '   ' });
 
-      await component.onSubmit();
+      component.onSubmit();
 
       const req = httpMock.expectOne(CREATE_URL);
       const { report } = await readRequest(req);
@@ -685,12 +572,10 @@ describe('FoundReportForm', () => {
       component.next();
       fillPlace();
       component.next();
-      fillItem(0, { category: 'KEYS' });
-      component.next();
       // Upisano pa predomišljeno: predmet je ipak kod nalazača
       fillHandover({ itemLocation: 'WITH_FINDER', handoverInfo: 'PS Vračar' });
 
-      await component.onSubmit();
+      component.onSubmit();
 
       const req = httpMock.expectOne(CREATE_URL);
       const { report } = await readRequest(req);
@@ -699,45 +584,10 @@ describe('FoundReportForm', () => {
       req.flush({ message: 'ok', linkExpiresAt: new Date().toISOString() });
     });
 
-    it('sends only the hash of the name of a document, never the name or the birth date', async () => {
-      await pickPhoto(photoFile());
-      component.next();
-      fillPlace();
-      component.next();
-      fillItem(0, {
-        category: 'DOCUMENT',
-        documentType: 'ID_CARD',
-        lastName: 'Петровић',
-        firstName: 'Ђорђе',
-        dateOfBirth: '1999-05-14',
-      });
-      component.next();
-      fillHandover();
-
-      await component.onSubmit();
-
-      const req = httpMock.expectOne(CREATE_URL);
-      const { report } = await readRequest(req);
-      // Isti heševi kao u primeru iz README-a backenda ("petrovic|djordje|1999-05-14")
-      expect(report.items).toEqual([
-        {
-          category: 'DOCUMENT',
-          documentType: 'ID_CARD',
-          nameHash: '63a91cca7f4cd75979029696f860e2b51331fd66ea748a278a1866a5073798ed',
-          nameDobHash: '13d3022879cde05143657d2bd87929c817d6a06e443b32363175ea05678f120d',
-        },
-      ]);
-      const raw = JSON.stringify(report);
-      expect(raw).not.toContain('Петровић');
-      expect(raw).not.toContain('Ђорђе');
-      expect(raw).not.toContain('1999-05-14');
-      req.flush({ message: 'ok', linkExpiresAt: new Date().toISOString() });
-    });
-
-    it('shows "check your email" after a successful send', async () => {
+    it('shows "check your email" with the next steps after a successful send', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       const linkExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       httpMock
         .expectOne(CREATE_URL)
@@ -752,8 +602,10 @@ describe('FoundReportForm', () => {
       expect(page().querySelector('.progress')).toBeNull();
       expect(text()).toContain('Proveri mejl');
       expect(text()).toContain('Nalazac@Test.rs');
+      expect(text()).toContain('opiši predmet');
       expect(text()).toContain('Potvrdi nalaz');
       expect(page().querySelector('.card-done a[href="/"]')).not.toBeNull();
+      expect(page().querySelector('.tag')).toBeNull();
       // naslov dobija fokus, da čitač ekrana pročita novi ekran
       expect(document.activeElement?.textContent).toContain('Proveri mejl');
     });
@@ -761,9 +613,8 @@ describe('FoundReportForm', () => {
     it('sends only one request even if the button is pressed twice', async () => {
       await fillEverything();
 
-      const first = component.onSubmit();
-      const second = component.onSubmit();
-      await Promise.all([first, second]);
+      component.onSubmit();
+      component.onSubmit();
 
       const requests = httpMock.match(CREATE_URL);
       expect(requests.length).toBe(1);
@@ -773,7 +624,7 @@ describe('FoundReportForm', () => {
     it('disables the buttons and says "Slanje..." while sending', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       await settle();
 
       expect(component.isSaving()).toBe(true);
@@ -789,15 +640,17 @@ describe('FoundReportForm', () => {
     it('shows the message of the backend and stays on the form', async () => {
       await fillEverything();
 
-      await component.onSubmit();
-      httpMock.expectOne(CREATE_URL).flush(
-        {
-          status: 400,
-          message: 'Predmet ne može biti pronađen pre više od 30 dana',
-          fieldErrors: {},
-        },
-        { status: 400, statusText: 'Bad Request' },
-      );
+      component.onSubmit();
+      httpMock
+        .expectOne(CREATE_URL)
+        .flush(
+          {
+            status: 400,
+            message: 'Predmet ne može biti pronađen pre više od 30 dana',
+            fieldErrors: {},
+          },
+          { status: 400, statusText: 'Bad Request' },
+        );
       await settle();
 
       expect(component.isSaving()).toBe(false);
@@ -811,7 +664,7 @@ describe('FoundReportForm', () => {
     it('explains a photo that is too big even though the backend answers with HTTP 400', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       httpMock
         .expectOne(CREATE_URL)
         .flush(
@@ -822,32 +675,26 @@ describe('FoundReportForm', () => {
       expect(component.submitErrors()).toEqual(['Slika može imati najviše 5 MB']);
     });
 
-    it('turns "items[1]" in field errors into "Predmet 2"', async () => {
+    it('turns field errors of the backend into readable messages', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       httpMock.expectOne(CREATE_URL).flush(
         {
           status: 400,
           message: 'Neispravni podaci',
-          fieldErrors: {
-            'items[1].brand': 'Marka može imati najviše 100 znakova',
-            finderEmail: 'Unesi ispravnu mejl adresu',
-          },
+          fieldErrors: { finderEmail: 'Unesi ispravnu mejl adresu', city: 'Grad je obavezan' },
         },
         { status: 400, statusText: 'Bad Request' },
       );
 
-      expect(component.submitErrors()).toEqual([
-        'Predmet 2: Marka može imati najviše 100 znakova',
-        'Unesi ispravnu mejl adresu',
-      ]);
+      expect(component.submitErrors()).toEqual(['Unesi ispravnu mejl adresu', 'Grad je obavezan']);
     });
 
     it('says the server is unreachable', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       httpMock.expectOne(CREATE_URL).error(new ProgressEvent('error'));
 
       expect(component.submitErrors()[0]).toContain('Server nije dostupan');
@@ -856,11 +703,11 @@ describe('FoundReportForm', () => {
     it('can be sent again after an error, and the old error disappears', async () => {
       await fillEverything();
 
-      await component.onSubmit();
+      component.onSubmit();
       httpMock.expectOne(CREATE_URL).flush(null, { status: 500, statusText: 'Server Error' });
       expect(component.submitErrors()).toEqual(['Slanje nalaza nije uspelo. Pokušaj ponovo.']);
 
-      await component.onSubmit();
+      component.onSubmit();
       expect(component.submitErrors()).toEqual([]);
       httpMock
         .expectOne(CREATE_URL)
@@ -872,53 +719,12 @@ describe('FoundReportForm', () => {
       await fillEverything();
       component.photo.set(null);
 
-      await component.onSubmit();
+      component.onSubmit();
       await settle();
 
       httpMock.expectNone(CREATE_URL);
       expect(component.stepIndex()).toBe(0);
       expect(text()).toContain('Dodaj fotografiju predmeta.');
     });
-  });
-});
-
-describe('FoundReportForm when the lists cannot be loaded', () => {
-  let httpMock: HttpTestingController;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [FoundReportForm],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-
-    httpMock = TestBed.inject(HttpTestingController);
-  });
-
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  it('shows an error on the item step, blocks "Dalje", and lets the user try again', async () => {
-    const fixture = TestBed.createComponent(FoundReportForm);
-    const component = fixture.componentInstance;
-    httpMock.expectOne(OPTIONS_URL).flush({}, { status: 500, statusText: 'Server Error' });
-    expect(component.optionsFailed()).toBe(true);
-
-    component.photo.set(new File([new Uint8Array(10)], 'a.jpg', { type: 'image/jpeg' }));
-    component.stepIndex.set(2);
-    await fixture.whenStable();
-
-    const page = fixture.nativeElement as HTMLElement;
-    expect(page.textContent).toContain('Liste za izbor nisu učitane');
-    expect(page.querySelector<HTMLButtonElement>('button[type=submit]')?.disabled).toBe(true);
-
-    component.loadOptions();
-    expect(component.optionsFailed()).toBe(false);
-    httpMock.expectOne(OPTIONS_URL).flush(SAMPLE_OPTIONS);
-    await fixture.whenStable();
-
-    expect(component.options()).toEqual(SAMPLE_OPTIONS);
-    expect(page.querySelector('#category-0')).not.toBeNull();
-    expect(page.querySelector<HTMLButtonElement>('button[type=submit]')?.disabled).toBe(false);
   });
 });
