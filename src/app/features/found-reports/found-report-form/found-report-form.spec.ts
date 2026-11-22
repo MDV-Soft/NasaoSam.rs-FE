@@ -641,16 +641,14 @@ describe('FoundReportForm', () => {
       await fillEverything();
 
       component.onSubmit();
-      httpMock
-        .expectOne(CREATE_URL)
-        .flush(
-          {
-            status: 400,
-            message: 'Predmet ne može biti pronađen pre više od 30 dana',
-            fieldErrors: {},
-          },
-          { status: 400, statusText: 'Bad Request' },
-        );
+      httpMock.expectOne(CREATE_URL).flush(
+        {
+          status: 400,
+          message: 'Predmet ne može biti pronađen pre više od 30 dana',
+          fieldErrors: {},
+        },
+        { status: 400, statusText: 'Bad Request' },
+      );
       await settle();
 
       expect(component.isSaving()).toBe(false);
