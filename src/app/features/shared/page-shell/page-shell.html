@@ -1,7 +1,7 @@
 <div class="page">
   <header class="topbar">
     <a class="brand" routerLink="/">NasaoSam</a>
-    <a class="home-link" routerLink="/">← Početna</a>
+    <a class="home-link" [routerLink]="backLink()">{{ backLabel() }}</a>
   </header>
 
   <main class="content">

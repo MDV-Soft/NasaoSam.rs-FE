@@ -37,6 +37,15 @@ export const routes: Routes = [
   },
   // Samo za prijavljene
   { path: 'moji-oglasi', component: LostReportList, canActivate: [authGuard] },
+  // Detalj jednog oglasa sa poklapanjima (učitava se tek kad zatreba)
+  {
+    path: 'moji-oglasi/:id',
+    loadComponent: () =>
+      import('./features/lost-reports/lost-report-detail/lost-report-detail').then(
+        (m) => m.LostReportDetail,
+      ),
+    canActivate: [authGuard],
+  },
   // Forma sa mapom (Leaflet) se učitava tek kad se otvori, da početna stranica ostane laka
   {
     path: 'novi-oglas',

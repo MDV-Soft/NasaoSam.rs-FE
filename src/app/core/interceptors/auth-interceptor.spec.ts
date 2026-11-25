@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { authInterceptor } from './auth-interceptor';
 import { AuthService } from '../services/auth.service';
 import { FinderSessionService } from '../services/finder-session.service';
+import { resolveApiUrl } from '../utils/api-url';
 import { environment } from '../../../environments/environment';
 
 describe('authInterceptor', () => {
@@ -165,6 +166,30 @@ describe('authInterceptor', () => {
 
       expect(finderSession.getToken()).toBe('finder-jwt');
       expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('photos of the matches (the backend gives a path without the address)', () => {
+    it('sends the token when the path is first turned into the address of the backend', () => {
+      authService.saveToken('owner-jwt');
+
+      http
+        .get(resolveApiUrl('/api/lost-reports/7/matches/12/photo'), { responseType: 'blob' })
+        .subscribe();
+
+      const req = httpMock.expectOne(environment.apiUrl + '/lost-reports/7/matches/12/photo');
+      expect(req.request.headers.get('Authorization')).toBe('Bearer owner-jwt');
+      req.flush(new Blob());
+    });
+
+    it('would send NO token for the bare path: it goes to the frontend, not the backend', () => {
+      authService.saveToken('owner-jwt');
+
+      http.get('/api/lost-reports/7/matches/12/photo', { responseType: 'blob' }).subscribe();
+
+      const req = httpMock.expectOne('/api/lost-reports/7/matches/12/photo');
+      expect(req.request.headers.has('Authorization')).toBe(false);
+      req.flush(new Blob());
     });
   });
 

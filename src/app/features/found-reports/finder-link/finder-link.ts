@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FinderService } from '../../../core/services/finder.service';
 import { FinderSessionService } from '../../../core/services/finder-session.service';
 import { apiErrorMessages } from '../../../core/utils/api-error';
-import { FinderShell } from '../finder-shell/finder-shell';
+import { PageShell } from '../../shared/page-shell/page-shell';
 
 type LinkState = 'opening' | 'failed' | 'missing';
 
@@ -17,9 +17,9 @@ type LinkState = 'opening' | 'failed' | 'missing';
  */
 @Component({
   selector: 'app-finder-link',
-  imports: [RouterLink, FinderShell],
+  imports: [RouterLink, PageShell],
   templateUrl: './finder-link.html',
-  styleUrls: ['../finder-controls.css', './finder-link.css'],
+  styleUrls: ['../../shared/page-controls.css', './finder-link.css'],
 })
 export class FinderLink implements OnInit {
   private route = inject(ActivatedRoute);

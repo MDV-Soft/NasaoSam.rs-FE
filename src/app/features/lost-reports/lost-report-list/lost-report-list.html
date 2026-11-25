@@ -11,7 +11,7 @@
 
   @if (user !== null) {
     <p class="user">
-      Prijavljen si kao <strong>{{ user.email }}</strong> ({{ user.role }}).
+      Prijavljen si kao <strong>{{ user.email }}</strong>.
     </p>
   }
 
@@ -59,6 +59,35 @@
               </li>
             }
           </ul>
+
+          @if (report.status === 'ACTIVE') {
+            @let summary = matchSummaries()[report.id];
+            @if (summary && summary.state !== 'failed') {
+              <div
+                class="matches"
+                [class.has-matches]="summary.state === 'ready' && summary.count > 0"
+              >
+                @if (summary.state === 'loading') {
+                  <span class="meta">Proveravamo poklapanja...</span>
+                } @else if (summary.count > 0) {
+                  <span class="matches-text">
+                    <strong>{{ matchesCount(summary.count) }}</strong>
+                    @if (summary.best) {
+                      <span class="meta"
+                        >, najbolje: {{ confidenceLabel(summary.best).toLowerCase() }}</span
+                      >
+                    }
+                  </span>
+                  <a class="matches-link" [routerLink]="['/moji-oglasi', report.id]"
+                    >Pogledaj poklapanja</a
+                  >
+                } @else {
+                  <span class="meta">Još nema poklapanja.</span>
+                  <a class="matches-link" [routerLink]="['/moji-oglasi', report.id]">Detalji</a>
+                }
+              </div>
+            }
+          }
 
           <div class="score">
             <span>Preciznost oglasa: {{ report.completenessScore }}/100</span>

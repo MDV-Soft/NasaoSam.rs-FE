@@ -5,6 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { LostReportList } from './lost-report-list';
 import { AuthService } from '../../../core/services/auth.service';
 import { ItemOptions } from '../../../core/models/item-options.model';
+import { LostMatch } from '../../../core/models/lost-match.model';
 import { LostReport, LostReportItem } from '../../../core/models/lost-report.model';
 import { environment } from '../../../../environments/environment';
 
@@ -93,6 +94,20 @@ const EXPIRED = report({
   closedAt: '2026-11-17T09:00:00Z',
 });
 
+const lostMatch = (id: number, values: Partial<LostMatch> = {}): LostMatch => ({
+  matchId: id,
+  lostItemId: 10,
+  confidence: 'MEDIUM',
+  category: 'WALLET',
+  customCategory: null,
+  documentType: null,
+  color: 'BLACK',
+  city: 'Niš',
+  foundDate: '2026-11-25',
+  photoUrl: `/api/lost-reports/1/matches/${id}/photo`,
+  ...values,
+});
+
 describe('LostReportList', () => {
   let fixture: ComponentFixture<LostReportList>;
   let component: LostReportList;
@@ -108,11 +123,30 @@ describe('LostReportList', () => {
       b.textContent?.includes(label),
     ) as HTMLButtonElement;
 
-  // Otvara stranicu i odgovara na dva zahteva koja ona šalje pri otvaranju.
+  // Poklapanja se traže samo za AKTIVNE oglase: odgovara na te zahteve ('fail' = server greši,
+  // 'wait' = ne odgovara). Oglasi bez zadatih poklapanja imaju prazna.
+  type MatchAnswers = Record<number, LostMatch[] | 'fail' | 'wait'>;
+  const answerMatches = async (reports: LostReport[], answers: MatchAnswers = {}) => {
+    reports
+      .filter((r) => r.status === 'ACTIVE')
+      .forEach((r) => {
+        const req = httpMock.expectOne(LIST_URL + '/' + r.id + '/matches');
+        const answer = answers[r.id] ?? [];
+        if (answer === 'fail') {
+          req.flush({}, { status: 500, statusText: 'Server Error' });
+        } else if (answer !== 'wait') {
+          req.flush(answer);
+        }
+      });
+    await fixture.whenStable();
+  };
+
+  // Otvara stranicu i odgovara na zahteve koje ona šalje pri otvaranju (liste, oglasi, poklapanja).
   // reports = null: ne odgovara (stranica ostaje u stanju "učitavanje").
   const open = async (
     reports: LostReport[] | null = [ACTIVE, CLOSED, RETURNED, EXPIRED],
     options: ItemOptions | 'fail' = OPTIONS,
+    matches: MatchAnswers = {},
   ) => {
     fixture = TestBed.createComponent(LostReportList);
     component = fixture.componentInstance;
@@ -124,6 +158,7 @@ describe('LostReportList', () => {
     }
     if (reports !== null) {
       httpMock.expectOne(LIST_URL).flush(reports);
+      await answerMatches(reports, matches);
     }
     await fixture.whenStable();
   };
@@ -160,7 +195,7 @@ describe('LostReportList', () => {
       expect(text()).toContain('Učitavanje oglasa...');
 
       httpMock.expectOne(LIST_URL).flush([ACTIVE]);
-      await fixture.whenStable();
+      await answerMatches([ACTIVE]);
 
       expect(text()).not.toContain('Učitavanje oglasa...');
       expect(cards().length).toBe(1);
@@ -181,7 +216,7 @@ describe('LostReportList', () => {
 
       buttonByText('Pokušaj ponovo').click();
       httpMock.expectOne(LIST_URL).flush([ACTIVE]);
-      await fixture.whenStable();
+      await answerMatches([ACTIVE]);
 
       expect(cards().length).toBe(1);
       expect(text()).not.toContain('Oglasi nisu učitani.');
@@ -374,6 +409,7 @@ describe('LostReportList', () => {
       httpMock
         .expectOne(LIST_URL)
         .flush([{ ...ACTIVE, status: 'CLOSED', closedAt: '2026-11-18T09:00:00Z' }]);
+      // zatvoren oglas više nema poklapanja: za njega se ne pita
       await fixture.whenStable();
 
       expect(text()).toContain('Oglas je već zatvoren');
@@ -388,6 +424,102 @@ describe('LostReportList', () => {
       await fixture.whenStable();
 
       expect(text()).toContain('Server nije dostupan');
+    });
+  });
+
+  describe('the matches', () => {
+    const matchRow = (card: HTMLElement) => card.querySelector('.matches');
+
+    it('asks for the matches of ACTIVE reports only', async () => {
+      await open([ACTIVE, CLOSED, RETURNED, EXPIRED]);
+
+      // answerMatches je već proverio da je zahtev samo za aktivan oglas; ostali ne šalju ništa
+      expect(matchRow(cards()[0])).not.toBeNull();
+      expect(matchRow(cards()[1])).toBeNull();
+      expect(matchRow(cards()[2])).toBeNull();
+      expect(matchRow(cards()[3])).toBeNull();
+    });
+
+    it('says "Proveravamo poklapanja..." until the answer comes', async () => {
+      await open([ACTIVE], OPTIONS, { 1: 'wait' });
+
+      expect(text()).toContain('Proveravamo poklapanja...');
+      expect(text()).not.toContain('Još nema poklapanja');
+      httpMock.expectNone(LIST_URL + '/1/matches');
+    });
+
+    it('shows how many matches a report has, the best level, and a link to them', async () => {
+      await open([ACTIVE], OPTIONS, {
+        1: [lostMatch(12, { confidence: 'LOW' }), lostMatch(13, { confidence: 'HIGH' })],
+      });
+
+      const row = matchRow(cards()[0]) as HTMLElement;
+      expect(row.textContent?.replace(/\s+/g, ' ')).toContain(
+        '2 poklapanja, najbolje: veoma verovatno',
+      );
+      expect(row.classList).toContain('has-matches');
+      const link = row.querySelector('a');
+      expect(link?.textContent?.trim()).toBe('Pogledaj poklapanja');
+      expect(link?.getAttribute('href')).toBe('/moji-oglasi/1');
+    });
+
+    it('uses the singular for one match', async () => {
+      await open([ACTIVE], OPTIONS, { 1: [lostMatch(12)] });
+
+      const row = matchRow(cards()[0])?.textContent ?? '';
+      expect(row).toContain('1 poklapanje');
+      expect(row).not.toContain('1 poklapanja');
+    });
+
+    it('says there are no matches yet, and still links to the details', async () => {
+      await open([ACTIVE], OPTIONS, { 1: [] });
+
+      const row = matchRow(cards()[0]) as HTMLElement;
+      expect(row.textContent).toContain('Još nema poklapanja.');
+      expect(row.classList).not.toContain('has-matches');
+      expect(row.querySelector('a')?.getAttribute('href')).toBe('/moji-oglasi/1');
+      expect(row.querySelector('a')?.textContent?.trim()).toBe('Detalji');
+    });
+
+    it('shows nothing about matches when the server fails, and the list still works', async () => {
+      await open([ACTIVE], OPTIONS, { 1: 'fail' });
+
+      expect(matchRow(cards()[0])).toBeNull();
+      expect(text()).not.toContain('Proveravamo poklapanja');
+      expect(cards().length).toBe(1);
+      expect(buttonByText('Zatvori oglas')).toBeDefined();
+    });
+
+    it('counts each report on its own', async () => {
+      const second = report({ id: 5, city: 'Niš' });
+      await open([ACTIVE, second], OPTIONS, {
+        1: [lostMatch(12)],
+        5: [lostMatch(20), lostMatch(21), lostMatch(22)],
+      });
+
+      expect(matchRow(cards()[0])?.textContent).toContain('1 poklapanje');
+      expect(matchRow(cards()[1])?.textContent).toContain('3 poklapanja');
+    });
+
+    it('asks again when the list is loaded again', async () => {
+      await open(null);
+      httpMock.expectOne(LIST_URL).flush({}, { status: 500, statusText: 'Server Error' });
+      await fixture.whenStable();
+
+      buttonByText('Pokušaj ponovo').click();
+      httpMock.expectOne(LIST_URL).flush([ACTIVE]);
+      await answerMatches([ACTIVE], { 1: [lostMatch(12), lostMatch(13)] });
+
+      expect(matchRow(cards()[0])?.textContent).toContain('2 poklapanja');
+    });
+  });
+
+  describe('who is signed in', () => {
+    it('shows the email, without the technical role', async () => {
+      await open([ACTIVE]);
+
+      expect(text()).toContain('Prijavljen si kao ana@primer.rs.');
+      expect(text()).not.toContain('OWNER');
     });
   });
 

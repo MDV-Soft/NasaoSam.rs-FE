@@ -74,7 +74,7 @@ export type FoundItemGroup = ReturnType<typeof createFoundItemGroup>;
   selector: 'app-found-items-editor',
   imports: [ReactiveFormsModule],
   templateUrl: './found-items-editor.html',
-  styleUrls: ['../finder-controls.css', './found-items-editor.css'],
+  styleUrls: ['../../shared/page-controls.css', './found-items-editor.css'],
 })
 export class FoundItemsEditor implements OnInit {
   options = input.required<ItemOptions>();

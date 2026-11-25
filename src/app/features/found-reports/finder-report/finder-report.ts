@@ -29,7 +29,7 @@ import { apiErrorMessages, apiErrorStatus } from '../../../core/utils/api-error'
 import { ITEM_LOCATION_OPTIONS } from '../../../core/utils/found-report-labels';
 import { findLabel, itemTitle } from '../../../core/utils/lost-report-labels';
 import { handoverValidator } from '../../../core/validators/found-report-validators';
-import { FinderShell } from '../finder-shell/finder-shell';
+import { PageShell } from '../../shared/page-shell/page-shell';
 import { FoundItemsEditor } from '../found-items-editor/found-items-editor';
 
 /**
@@ -44,9 +44,9 @@ import { FoundItemsEditor } from '../found-items-editor/found-items-editor';
  */
 @Component({
   selector: 'app-finder-report',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, FinderShell, FoundItemsEditor],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, PageShell, FoundItemsEditor],
   templateUrl: './finder-report.html',
-  styleUrls: ['../finder-controls.css', './finder-report.css'],
+  styleUrls: ['../../shared/page-controls.css', './finder-report.css'],
 })
 export class FinderReportPage implements OnInit, OnDestroy {
   private finderService = inject(FinderService);

@@ -168,4 +168,79 @@ describe('LostReportService', () => {
       req.flush([]);
     });
   });
+
+  describe('matches', () => {
+    const MATCH_JSON = {
+      matchId: 12,
+      lostItemId: 31,
+      confidence: 'MEDIUM',
+      category: 'WALLET',
+      customCategory: null,
+      documentType: null,
+      color: 'BLACK',
+      city: 'Niš',
+      foundDate: '2026-11-25',
+      photoUrl: '/api/lost-reports/7/matches/12/photo',
+    };
+
+    it('loads the matches of one report with GET', () => {
+      let result: unknown;
+      service.getMatches(7).subscribe((matches) => (result = matches));
+
+      const req = httpMock.expectOne(baseUrl + '/7/matches');
+      expect(req.request.method).toBe('GET');
+      req.flush([MATCH_JSON]);
+
+      expect(result).toEqual([MATCH_JSON]);
+    });
+
+    it('gets an empty list when there are no matches', () => {
+      let result: unknown;
+      service.getMatches(7).subscribe((matches) => (result = matches));
+
+      httpMock.expectOne(baseUrl + '/7/matches').flush([]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('loads the blurred photo as a blob from the address of the BACKEND, not of the frontend', () => {
+      let blob: Blob | undefined;
+      service.getMatchPhoto(MATCH_JSON.photoUrl).subscribe((result) => (blob = result));
+
+      // photoUrl stiže kao putanja; da je poslata takva, otišla bi na localhost:4200
+      const req = httpMock.expectOne(environment.apiUrl + '/lost-reports/7/matches/12/photo');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+      expect(req.request.url.startsWith(environment.apiUrl)).toBe(true);
+      req.flush(new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' }));
+
+      expect(blob?.size).toBe(3);
+    });
+
+    it('dismisses a match with POST and no body, and the answer 204 is fine', () => {
+      let done = false;
+      service.dismissMatch(7, 12).subscribe(() => (done = true));
+
+      const req = httpMock.expectOne(baseUrl + '/7/matches/12/dismiss');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(done).toBe(true);
+    });
+
+    it('passes the "not found" error on (a second dismiss of the same match)', () => {
+      let status = 0;
+      service.dismissMatch(7, 12).subscribe({ error: (error) => (status = error.error.status) });
+
+      httpMock
+        .expectOne(baseUrl + '/7/matches/12/dismiss')
+        .flush(
+          { status: 404, message: 'Poklapanje nije pronađeno' },
+          { status: 400, statusText: 'Bad Request' },
+        );
+
+      expect(status).toBe(404);
+    });
+  });
 });

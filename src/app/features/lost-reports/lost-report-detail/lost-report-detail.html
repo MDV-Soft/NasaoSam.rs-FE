@@ -1,0 +1,162 @@
+<app-page-shell backLink="/moji-oglasi" backLabel="← Moji oglasi">
+  @if (report(); as r) {
+    <!-- ===================== Naslov ===================== -->
+    <section class="intro">
+      <h1>Poklapanja</h1>
+      @if (!isActive()) {
+        <p class="lead">
+          Oglas više nije aktivan ({{ statusLabel(r.status).toLowerCase() }}), pa se poklapanja ne
+          traže.
+        </p>
+      } @else if (matches() === null && matchesError() === '') {
+        <p class="lead">Tražimo poklapanja...</p>
+      } @else if (total() > 0) {
+        <p class="lead">
+          Za tvoj oglas postoji {{ matchesCount(total()) }}. Fotografije su zamućene: pravu sliku i
+          kontakt nalazača dobijaš kad se potvrdi da je predmet tvoj.
+        </p>
+      } @else if (matchesError() === '') {
+        <p class="lead">Za sada nema poklapanja.</p>
+      }
+    </section>
+
+    <!-- ===================== Poklapanja ===================== -->
+    @if (isActive()) {
+      @if (matchesError() !== '') {
+        <section class="card">
+          <p class="form-error plain" role="alert">{{ matchesError() }}</p>
+          <div class="actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="checking()"
+              (click)="loadMatches()"
+            >
+              Pokušaj ponovo
+            </button>
+          </div>
+        </section>
+      } @else if (matches() !== null) {
+        @if (removedNotice()) {
+          <p class="notice removed" role="status">
+            Poklapanje je uklonjeno i neće se ponovo prikazati.
+          </p>
+        }
+
+        @for (group of withMatches(); track group.item.id) {
+          <section class="card">
+            <h2>{{ itemTitle(group.item) }}</h2>
+            <p class="hint">
+              Pronađeno {{ matchesCount(group.matches.length) }} za ovaj predmet, najverovatnije
+              prvo.
+            </p>
+            <div class="match-list">
+              @for (match of group.matches; track match.matchId) {
+                <app-match-card
+                  [match]="match"
+                  [reportId]="r.id"
+                  [options]="options()"
+                  (dismissed)="onDismissed($event)"
+                />
+              }
+            </div>
+          </section>
+        }
+
+        @if (total() === 0) {
+          <section class="card">
+            <h2>Još nema poklapanja</h2>
+            <p class="hint">
+              Poklapanja se pojavljuju ovde čim neko pronađe predmet koji liči na tvoj. Obaveštenja
+              na mejl još nema, pa svrati ponovo ili proveri odmah.
+            </p>
+          </section>
+        } @else if (withoutMatches().length > 0) {
+          <p class="others">
+            Bez poklapanja za sada:
+            @for (item of withoutMatches(); track item.id; let last = $last) {
+              {{ itemTitle(item) }}{{ last ? '.' : ',' }}
+            }
+          </p>
+        }
+
+        <div class="refresh">
+          <button
+            type="button"
+            class="btn btn-light btn-small"
+            [disabled]="checking()"
+            (click)="loadMatches()"
+          >
+            @if (checking()) {
+              Proveravam...
+            } @else {
+              Proveri ponovo
+            }
+          </button>
+        </div>
+
+        @if (total() > 0) {
+          <p class="notice">
+            Prepoznaješ svoj predmet? Potvrda da je tvoj i kontakt nalazača stižu uskoro.
+          </p>
+        }
+      }
+    }
+
+    <!-- ===================== Tvoj oglas ===================== -->
+    <section class="card">
+      <h2>Tvoj oglas</h2>
+      <dl class="facts">
+        <div>
+          <dt>Gde</dt>
+          <dd>{{ placeText(r) }}</dd>
+        </div>
+        <div>
+          <dt>Kada</dt>
+          <dd>
+            {{ r.lostFrom | date: 'dd.MM.yyyy. HH:mm' }} –
+            {{ r.lostTo | date: 'dd.MM.yyyy. HH:mm' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ statusLabel(r.status) }}</dd>
+        </div>
+        <div>
+          <dt>Predmeti</dt>
+          <dd>
+            @for (item of r.items; track item.id; let last = $last) {
+              {{ itemTitle(item) }}{{ last ? '' : ',' }}
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+  } @else if (notFound()) {
+    <section class="intro">
+      <h1>Oglas nije pronađen</h1>
+      <p class="lead">Oglas ne postoji ili nije tvoj.</p>
+    </section>
+    <section class="card">
+      <div class="actions">
+        <a class="btn btn-primary" routerLink="/moji-oglasi">Moji oglasi</a>
+      </div>
+    </section>
+  } @else if (loadError() !== '') {
+    <section class="intro">
+      <h1>Oglas nije učitan</h1>
+      <p class="lead">{{ loadError() }}</p>
+    </section>
+    <section class="card">
+      <div class="actions">
+        <a class="btn btn-light" routerLink="/moji-oglasi">Moji oglasi</a>
+        <button type="button" class="btn btn-primary" (click)="loadReport()">Pokušaj ponovo</button>
+      </div>
+    </section>
+  } @else {
+    <section class="intro">
+      <h1>Učitavanje oglasa</h1>
+      <p class="lead">Samo trenutak...</p>
+    </section>
+  }
+</app-page-shell>

@@ -1,9 +1,11 @@
 import {
   addDays,
+  describeDay,
   describeMoment,
   earlierDayOptions,
   formatLocalDate,
   formatLocalDateTime,
+  parseLocalDate,
   partsFromValue,
   roundDownToStep,
   valueFromParts,
@@ -109,6 +111,28 @@ describe('moment utils', () => {
       expect(text).toContain('14. novembar 2026.');
       expect(text).toContain('u 18:00');
       expect(text).not.toContain('Danas');
+    });
+  });
+
+  describe('parseLocalDate', () => {
+    it('reads a day as a LOCAL date, so the day never moves around midnight', () => {
+      const date = parseLocalDate('2026-11-25');
+
+      expect(date.getFullYear()).toBe(2026);
+      expect(date.getMonth()).toBe(10);
+      expect(date.getDate()).toBe(25);
+      expect(date.getHours()).toBe(0);
+    });
+  });
+
+  describe('describeDay', () => {
+    it('says "danas" and "juče" for the last two days', () => {
+      expect(describeDay('2026-11-22', NOW)).toBe('danas');
+      expect(describeDay('2026-11-21', NOW)).toBe('juče');
+    });
+
+    it('writes the whole date for an older day', () => {
+      expect(describeDay('2026-11-14', NOW)).toBe('14. novembar 2026.');
     });
   });
 });

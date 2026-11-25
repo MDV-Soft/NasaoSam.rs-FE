@@ -68,7 +68,7 @@ const shortWeekdayDate = new Intl.DateTimeFormat('sr-Latn', {
 });
 
 // "GGGG-MM-DD" kao lokalni datum (ne UTC, da dan ne bi "pobegao" oko ponoći)
-function parseDate(text: string): Date {
+export function parseLocalDate(text: string): Date {
   const [year, month, day] = text.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
@@ -119,7 +119,7 @@ export function earlierDayOptions(now: Date, maxDaysBack: number): DayOption[] {
  */
 export function describeMoment(value: string, now: Date): string {
   const parts = partsFromValue(value, now);
-  const date = parseDate(parts.date);
+  const date = parseLocalDate(parts.date);
   const time = `${pad(parts.hour)}:${pad(parts.minute)}`;
 
   if (parts.day === 'today') {
@@ -129,4 +129,20 @@ export function describeMoment(value: string, now: Date): string {
     return `Juče, ${longDate.format(date)} u ${time}`;
   }
   return `${capitalize(weekdayDate.format(date))} u ${time}`;
+}
+
+/**
+ * Dan bez sata, za rečenice: "danas", "juče" ili "25. novembar 2026.".
+ * Prima i datum bez vremena ("GGGG-MM-DD"), npr. dan nalaza koji šalje backend.
+ */
+export function describeDay(dateText: string, now: Date): string {
+  const date = parseLocalDate(dateText);
+
+  if (dateText === formatLocalDate(now)) {
+    return 'danas';
+  }
+  if (dateText === formatLocalDate(addDays(now, -1))) {
+    return 'juče';
+  }
+  return longDate.format(date);
 }

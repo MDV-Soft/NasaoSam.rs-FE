@@ -1,0 +1,85 @@
+<article class="match">
+  <div class="photo">
+    @if (photoUrl(); as url) {
+      <img [src]="url" alt="Zamućena fotografija pronađenog predmeta" />
+    } @else {
+      <p class="photo-empty">
+        @switch (photoState()) {
+          @case ('loading') {
+            Učitavanje fotografije...
+          }
+          @case ('failed') {
+            Fotografija trenutno nije dostupna
+          }
+          @default {
+            Nalazač nije dodao fotografiju
+          }
+        }
+      </p>
+    }
+  </div>
+
+  <div class="info">
+    <h3>{{ title() }}</h3>
+
+    <dl class="facts">
+      @if (colorText() !== '') {
+        <div>
+          <dt>Boja</dt>
+          <dd>{{ colorText() }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Pronađeno</dt>
+        <dd>{{ match().city }}, {{ foundText() }}</dd>
+      </div>
+    </dl>
+
+    <div class="confidence" role="img" [attr.aria-label]="'Verovatnoća poklapanja: ' + label()">
+      <span class="bars" aria-hidden="true">
+        <i [class.on]="level() >= 1"></i>
+        <i [class.on]="level() >= 2"></i>
+        <i [class.on]="level() >= 3"></i>
+      </span>
+      <span class="confidence-label" [attr.data-level]="level()">{{ label() }}</span>
+    </div>
+
+    @if (errors().length > 0) {
+      <ul class="form-error" role="alert">
+        @for (message of errors(); track $index) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    }
+
+    @if (confirming()) {
+      <div class="confirm" role="group" aria-label="Potvrda uklanjanja">
+        <p>Poklapanje će nestati i neće se ponovo prikazati, čak ni kad izmeniš oglas.</p>
+        <div class="confirm-actions">
+          <button
+            type="button"
+            class="btn btn-light btn-small"
+            [disabled]="busy()"
+            (click)="cancelDismiss()"
+          >
+            Odustani
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger btn-small"
+            [disabled]="busy()"
+            (click)="dismiss()"
+          >
+            @if (busy()) {
+              Uklanjanje...
+            } @else {
+              Da, nije moj predmet
+            }
+          </button>
+        </div>
+      </div>
+    } @else {
+      <button type="button" class="link-button" (click)="askDismiss()">Ovo nije moj predmet</button>
+    }
+  </div>
+</article>

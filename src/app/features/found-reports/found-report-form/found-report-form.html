@@ -1,4 +1,4 @@
-<app-finder-shell>
+<app-page-shell>
   @if (submitted(); as result) {
     <!-- ===================== Poslato ===================== -->
     <section class="card card-done">
@@ -27,6 +27,13 @@
           <span><strong>Potvrdi nalaz.</strong> Tek tada počinjemo da tražimo vlasnika.</span>
         </li>
       </ol>
+
+      @if (isDevelopment) {
+        <p class="notice dev-note">
+          Razvojni režim: slanje mejla još nije povezano. Link za potvrdu je ispisan u konzoli
+          backenda.
+        </p>
+      }
 
       <a class="btn btn-primary" routerLink="/">Nazad na početnu</a>
     </section>
@@ -383,4 +390,4 @@
       }
     </section>
   }
-</app-finder-shell>
+</app-page-shell>

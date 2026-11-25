@@ -35,9 +35,10 @@ import {
   foundTimeValidator,
   handoverValidator,
 } from '../../../core/validators/found-report-validators';
+import { environment } from '../../../../environments/environment';
 import { LocationPicker, MapLocation } from '../../lost-reports/location-picker/location-picker';
 import { MomentPicker } from '../../shared/moment-picker/moment-picker';
-import { FinderShell } from '../finder-shell/finder-shell';
+import { PageShell } from '../../shared/page-shell/page-shell';
 
 type StepId = 'photo' | 'place' | 'handover';
 
@@ -65,9 +66,9 @@ const STEPS: StepInfo[] = [
  */
 @Component({
   selector: 'app-found-report-form',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, LocationPicker, MomentPicker, FinderShell],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, LocationPicker, MomentPicker, PageShell],
   templateUrl: './found-report-form.html',
-  styleUrls: ['../finder-controls.css', './found-report-form.css'],
+  styleUrls: ['../../shared/page-controls.css', './found-report-form.css'],
 })
 export class FoundReportForm implements OnDestroy {
   private foundReportService = inject(FoundReportService);
@@ -78,6 +79,8 @@ export class FoundReportForm implements OnDestroy {
   // Backend ne prima nalaz stariji od 30 dana, pa se toliko dana unazad i nudi
   readonly maxDaysBack = MAX_FOUND_PAST_DAYS;
   readonly maxPhotoMegabytes = MAX_PHOTO_BYTES / (1024 * 1024);
+  // Dok slanje mejla nije povezano, ekran "Proveri mejl" u razvoju kaže gde je link (u produkciji se ne vidi)
+  readonly isDevelopment: boolean = !environment.production;
   readonly formatFileSize = formatFileSize;
 
   // ---------- Koraci ----------

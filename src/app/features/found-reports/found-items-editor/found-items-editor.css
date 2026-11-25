@@ -1,4 +1,4 @@
-/* Zajednički stilovi (polja, dugmad...) su u ../finder-controls.css */
+/* Zajednički stilovi (polja, dugmad...) su u ../../shared/page-controls.css */
 :host {
   display: block;
 }

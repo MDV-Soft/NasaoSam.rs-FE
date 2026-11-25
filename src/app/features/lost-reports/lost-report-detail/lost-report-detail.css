@@ -1,0 +1,59 @@
+/* Zajednički stilovi (kartica, dugmad...) su u ../../shared/page-controls.css */
+.match-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.facts {
+  margin: 0;
+}
+
+.facts > div {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.facts > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.facts dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  line-height: 1.45;
+}
+
+@media (min-width: 560px) {
+  .facts > div {
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+  }
+}
+
+.others {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.refresh {
+  margin: 0 0 1rem;
+}
+
+.form-error.plain {
+  margin: 0;
+  padding-left: 0;
+}
+
+.removed {
+  margin: 0 0 1rem;
+  background: #fff;
+}

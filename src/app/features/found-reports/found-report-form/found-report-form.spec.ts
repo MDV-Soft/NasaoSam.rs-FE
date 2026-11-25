@@ -610,6 +610,41 @@ describe('FoundReportForm', () => {
       expect(document.activeElement?.textContent).toContain('Proveri mejl');
     });
 
+    describe('the note about the email (it is not connected yet)', () => {
+      const submit = async () => {
+        await fillEverything();
+        component.onSubmit();
+        httpMock
+          .expectOne(CREATE_URL)
+          .flush(
+            { message: 'ok', linkExpiresAt: new Date().toISOString() },
+            { status: 201, statusText: 'Created' },
+          );
+        await settle();
+      };
+
+      it('tells in development where the link is', async () => {
+        Object.defineProperty(component, 'isDevelopment', { value: true });
+        await submit();
+
+        expect(page().querySelector('.dev-note')?.textContent).toContain('Razvojni režim');
+        expect(text()).toContain('konzoli backenda');
+      });
+
+      it('is not shown in production', async () => {
+        Object.defineProperty(component, 'isDevelopment', { value: false });
+        await submit();
+
+        expect(page().querySelector('.dev-note')).toBeNull();
+        expect(text()).not.toContain('Razvojni režim');
+        expect(text()).toContain('Proveri mejl');
+      });
+
+      it('follows the environment flag by default', () => {
+        expect(component.isDevelopment).toBe(!environment.production);
+      });
+    });
+
     it('sends only one request even if the button is pressed twice', async () => {
       await fillEverything();
 

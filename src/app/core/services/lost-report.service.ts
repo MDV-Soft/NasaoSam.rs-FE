@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CreateLostReportRequest, LostReport } from '../models/lost-report.model';
+import { LostMatch } from '../models/lost-match.model';
+import { resolveApiUrl } from '../utils/api-url';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -48,5 +50,37 @@ export class LostReportService {
   // POST /lost-reports/{id}/close: zatvara oglas (409 ako više nije aktivan). Nema tela.
   close(id: number): Observable<LostReport> {
     return this.http.post<LostReport>(this.url + '/' + id + '/close', {});
+  }
+
+  /**
+   * GET /lost-reports/{id}/matches: otvorena poklapanja oglasa, najbolje prvo. Prazna lista znači
+   * da poklapanja nema (a za zatvoren ili istekao oglas lista je uvek prazna).
+   *
+   * Server traži poklapanja sam: kad nalazač potvrdi nalaz i kad vlasnik napravi ili izmeni oglas.
+   * Frontend ništa ne okida, samo čita rezultat.
+   */
+  getMatches(reportId: number): Observable<LostMatch[]> {
+    return this.http.get<LostMatch[]>(this.url + '/' + reportId + '/matches');
+  }
+
+  /**
+   * Zamućena slika nalaza (JPEG, bez keširanja). <img src> ne može da pošalje Authorization
+   * zaglavlje, pa se slika učitava kao blob, a komponenta od njega pravi privremenu adresu.
+   * photoUrl je putanja koju je dao server; pretvara se u punu adresu backenda (vidi resolveApiUrl).
+   */
+  getMatchPhoto(photoUrl: string): Observable<Blob> {
+    return this.http.get(resolveApiUrl(photoUrl), { responseType: 'blob' });
+  }
+
+  /**
+   * POST /lost-reports/{id}/matches/{matchId}/dismiss: "Ovo nije moj predmet". Nema tela, a
+   * odgovor je 204. Poklapanje nestaje i ne vraća se čak ni kad se oglas ponovo izmeni.
+   * Drugi poziv za isto poklapanje je greška "nije pronađeno" (u telu status 404).
+   */
+  dismissMatch(reportId: number, matchId: number): Observable<void> {
+    return this.http.post<void>(
+      this.url + '/' + reportId + '/matches/' + matchId + '/dismiss',
+      null,
+    );
   }
 }
