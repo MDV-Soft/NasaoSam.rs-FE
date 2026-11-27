@@ -8,7 +8,7 @@ import { LostReport, LostReportItem } from '../../../core/models/lost-report.mod
 import { LostReportService } from '../../../core/services/lost-report.service';
 import { MetaService } from '../../../core/services/meta.service';
 import { apiErrorMessages, apiErrorStatus } from '../../../core/utils/api-error';
-import { itemTitle, statusLabel } from '../../../core/utils/lost-report-labels';
+import { itemTitle, searchAreaText, statusLabel } from '../../../core/utils/lost-report-labels';
 import { matchesCount } from '../../../core/utils/plural';
 import { PageShell } from '../../shared/page-shell/page-shell';
 import { MatchCard } from '../match-card/match-card';
@@ -59,6 +59,19 @@ export class LostReportDetail implements OnInit {
   removedNotice = signal<boolean>(false);
 
   isActive = computed(() => this.report()?.status === 'ACTIVE');
+
+  // Gde se traže nalazi ("u krugu od 1 km oko tačke koju si označio"): vlasnik treba da zna zašto
+  // poklapanja nema, jer nalaz van kruga se ne poklapa nikad, koliko god mu se ostalo slaže
+  searchArea = computed(() => {
+    const report = this.report();
+    return report === null ? '' : searchAreaText(report);
+  });
+
+  // Ista rečenica sa velikim početnim slovom, za red u tabeli
+  searchAreaLabel = computed(() => {
+    const text = this.searchArea();
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  });
   total = computed(() => this.matches()?.length ?? 0);
 
   // Predmeti oglasa sa svojim poklapanjima (samo oni koji ih imaju)

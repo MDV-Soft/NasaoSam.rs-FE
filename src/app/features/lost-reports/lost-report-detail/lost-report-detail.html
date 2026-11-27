@@ -70,6 +70,7 @@
               Poklapanja se pojavljuju ovde čim neko pronađe predmet koji liči na tvoj. Obaveštenja
               na mejl još nema, pa svrati ponovo ili proveri odmah.
             </p>
+            <p class="hint area">Tražimo nalaze {{ searchArea() }}.</p>
           </section>
         } @else if (withoutMatches().length > 0) {
           <p class="others">
@@ -122,6 +123,12 @@
           <dt>Status</dt>
           <dd>{{ statusLabel(r.status) }}</dd>
         </div>
+        @if (isActive()) {
+          <div>
+            <dt>Gde tražimo</dt>
+            <dd class="search-area">{{ searchAreaLabel() }}</dd>
+          </div>
+        }
         <div>
           <dt>Predmeti</dt>
           <dd>

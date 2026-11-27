@@ -35,7 +35,10 @@ export const RADIUS_OPTIONS: RadiusOption[] = [
   { meters: 3000, label: '3 km', hint: 'Negde u široj okolini' },
 ];
 
-export const DEFAULT_RADIUS_METERS = 300;
+// Podrazumevani radijus pri postavljanju pina. Backend ga tretira kao TVRDU granicu: nalaz van kruga
+// se uopšte ne poklapa. Zato nije mali (300 m je bilo premalo za predmet izgubljen "negde u delu
+// grada"), a vlasnik ga uvek može da poveća.
+export const DEFAULT_RADIUS_METERS = 1000;
 
 // Početni prikaz: cela Srbija
 const SERBIA_CENTER: L.LatLngTuple = [44.1, 20.8];

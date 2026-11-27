@@ -263,6 +263,46 @@ describe('LostReportDetail', () => {
     });
   });
 
+  describe('where the matches are searched', () => {
+    const point = { latitude: 43.3209, longitude: 21.8958 };
+
+    it('says the circle and the radius in the empty state, so the owner knows why nothing is shown', async () => {
+      await open(report({ ...point, locationRadiusMeters: 300 }), []);
+
+      expect(page().querySelector('.area')?.textContent).toContain(
+        'Tražimo nalaze u krugu od 300 m oko tačke koju si označio.',
+      );
+    });
+
+    it('says 5 km when the report has a point but no radius (as the backend does)', async () => {
+      await open(report({ ...point, locationRadiusMeters: null }), []);
+
+      expect(page().querySelector('.area')?.textContent).toContain('u krugu od 5 km');
+    });
+
+    it('says "anywhere in the city" when the report has no point', async () => {
+      await open(report(), []);
+
+      expect(page().querySelector('.area')?.textContent).toContain(
+        'bilo gde u mestu Niš (oglas nema tačku na mapi)',
+      );
+    });
+
+    it('shows the same in the table of the report, starting with a capital letter', async () => {
+      await open(report({ ...point, locationRadiusMeters: 1000 }), [match(12)]);
+
+      expect(page().querySelector('.search-area')?.textContent).toBe(
+        'U krugu od 1 km oko tačke koju si označio',
+      );
+    });
+
+    it('does not show the row for a report that is not active (nothing is searched)', async () => {
+      await open(report({ status: 'CLOSED', closedAt: '2026-11-25T09:00:00Z' }));
+
+      expect(page().querySelector('.search-area')).toBeNull();
+    });
+  });
+
   describe('"Proveri ponovo"', () => {
     it('asks the server again and shows the new matches', async () => {
       await open(report(), []);

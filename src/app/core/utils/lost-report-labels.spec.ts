@@ -1,6 +1,12 @@
 import { ItemOptions } from '../models/item-options.model';
 import { LostReportItem } from '../models/lost-report.model';
-import { findLabel, itemTitle, statusLabel } from './lost-report-labels';
+import {
+  DEFAULT_SEARCH_RADIUS_METERS,
+  findLabel,
+  itemTitle,
+  searchAreaText,
+  statusLabel,
+} from './lost-report-labels';
 
 const OPTIONS: ItemOptions = {
   categories: [
@@ -78,5 +84,40 @@ describe('itemTitle', () => {
     expect(itemTitle(item({ category: 'DOCUMENT', documentType: 'ID_CARD' }), null)).toBe(
       'DOCUMENT: ID_CARD',
     );
+  });
+});
+
+describe('searchAreaText (gde se traže nalazi)', () => {
+  const area = (values: Partial<Parameters<typeof searchAreaText>[0]>) =>
+    searchAreaText({
+      city: 'Niš',
+      latitude: null,
+      longitude: null,
+      locationRadiusMeters: null,
+      ...values,
+    });
+
+  it('says the circle around the point, with the radius that the owner chose', () => {
+    expect(area({ latitude: 43.32, longitude: 21.9, locationRadiusMeters: 300 })).toBe(
+      'u krugu od 300 m oko tačke koju si označio',
+    );
+    expect(area({ latitude: 43.32, longitude: 21.9, locationRadiusMeters: 3000 })).toBe(
+      'u krugu od 3 km oko tačke koju si označio',
+    );
+  });
+
+  it('uses the radius of the backend (5 km) when the report has a point but no radius', () => {
+    expect(DEFAULT_SEARCH_RADIUS_METERS).toBe(5000);
+    expect(area({ latitude: 43.32, longitude: 21.9 })).toBe(
+      'u krugu od 5 km oko tačke koju si označio',
+    );
+  });
+
+  it('says the whole city when the report has no point (the backend then compares the city only)', () => {
+    expect(area({})).toBe('bilo gde u mestu Niš (oglas nema tačku na mapi)');
+  });
+
+  it('treats a point at 0,0 as a point (0 is a real coordinate)', () => {
+    expect(area({ latitude: 0, longitude: 0, locationRadiusMeters: 1000 })).toContain('1 km');
   });
 });

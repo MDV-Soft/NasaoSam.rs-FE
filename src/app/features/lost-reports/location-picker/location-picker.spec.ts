@@ -41,6 +41,39 @@ describe('LocationPicker', () => {
     expect(page().textContent).not.toContain('Klikni na mapu tamo');
   });
 
+  describe('the radius (a HARD limit: a find outside the circle is never matched)', () => {
+    it('starts at 1 km, not at a small circle', async () => {
+      expect(DEFAULT_RADIUS_METERS).toBe(1000);
+
+      component.placePin(44.8, 20.4);
+      await fixture.whenStable();
+
+      expect(emitted.at(-1)?.radiusMeters).toBe(1000);
+      expect(page().querySelector('.lp-chip-active')?.textContent).toContain('1 km');
+    });
+
+    it('asks how far from the pin to search, and says that finds outside the circle are not shown', async () => {
+      component.placePin(44.8, 20.4);
+      await fixture.whenStable();
+
+      const radius = page().querySelector('.lp-radius')?.textContent?.replace(/\s+/g, ' ') ?? '';
+      expect(radius).toContain('Koliko daleko od pina da tražimo nalaze?');
+      expect(radius).toContain('Nalaze van ovog kruga ne prikazujemo');
+      expect(radius).toContain('izaberi veći krug');
+      expect(radius).not.toContain('Koliko si siguran');
+    });
+
+    it('still offers the small circles for owners who know where they lost the item', async () => {
+      component.placePin(44.8, 20.4);
+      await fixture.whenStable();
+
+      const labels = Array.from(page().querySelectorAll('.lp-chip strong')).map(
+        (e) => e.textContent,
+      );
+      expect(labels).toEqual(['100 m', '300 m', '1 km', '3 km']);
+    });
+  });
+
   it('keeps the chosen radius when the pin moves', async () => {
     component.placePin(44.8, 20.4);
     component.setRadius(1000);

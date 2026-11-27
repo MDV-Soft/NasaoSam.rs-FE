@@ -452,6 +452,15 @@ describe('LostReportForm', () => {
     });
   });
 
+  describe('the text above the map', () => {
+    it('says that finds outside the circle are not shown (they are not "preferred", they are excluded)', () => {
+      const hint = (fixture.nativeElement as HTMLElement).textContent?.replace(/\s+/g, ' ') ?? '';
+
+      expect(hint).toContain('Nalazi van tog kruga se ne prikazuju');
+      expect(hint).not.toContain('dobijaju prednost');
+    });
+  });
+
   describe('the map', () => {
     it('shows the map instead of the latitude and longitude fields', () => {
       const page = fixture.nativeElement as HTMLElement;

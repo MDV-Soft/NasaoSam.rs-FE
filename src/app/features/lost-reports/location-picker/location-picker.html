@@ -31,7 +31,7 @@
   @if (current(); as location) {
     @if (showRadius()) {
       <fieldset class="lp-radius">
-        <legend>Koliko si siguran u mesto?</legend>
+        <legend>Koliko daleko od pina da tražimo nalaze?</legend>
         <div class="lp-chips">
           @for (option of radiusOptions; track option.meters) {
             <button
@@ -47,7 +47,8 @@
           }
         </div>
         <p class="lp-note">
-          Pin ne mora biti tačan: prevuci ga ako treba, a krug pokazuje gde sistem traži nalaze.
+          Nalaze van ovog kruga ne prikazujemo. Ako nisi siguran gde si izgubio, izaberi veći krug.
+          Pin možeš da prevučeš.
         </p>
       </fieldset>
     }
